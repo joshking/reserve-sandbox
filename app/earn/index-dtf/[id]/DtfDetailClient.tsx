@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import {
   Globe2, Shuffle, Landmark, ArrowLeftRight, Fingerprint,
@@ -624,6 +625,7 @@ function FeesCard() {
 // ── Governance Proposal List ──────────────────────────────────────────────────
 
 function GovernanceProposalList() {
+  const pathname = usePathname()
   return (
     <div style={{ background: "white", borderRadius: "20px", overflow: "hidden" }}>
       {/* Header */}
@@ -635,14 +637,14 @@ function GovernanceProposalList() {
         <span style={{ fontSize: "20px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "#0a0d10" }}>
           Recent proposals
         </span>
-        <button style={{
+        <Link href={`${pathname}/governance/propose`} style={{
           display: "flex", alignItems: "center", gap: "6px",
-          background: "none", border: "none", cursor: "pointer", padding: 0,
+          textDecoration: "none",
           fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#0151af",
         }}>
           <PlusCircle size={14} color="#0151af" />
           <span>Create proposal</span>
-        </button>
+        </Link>
       </div>
 
       {/* Proposal rows */}
