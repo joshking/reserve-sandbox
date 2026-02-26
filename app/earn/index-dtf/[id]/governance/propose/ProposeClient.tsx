@@ -1,11 +1,13 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import ProposalCategory from "@/components/ProposalCategory"
 
 export default function ProposeClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const expedited = searchParams.get("type") === "expedited"
 
   return (
     <div
@@ -33,6 +35,7 @@ export default function ProposeClient() {
             // TODO: route to proposal creation form for each category
             console.log("Selected category:", id)
           }}
+          expedited={expedited}
         />
       </div>
     </div>

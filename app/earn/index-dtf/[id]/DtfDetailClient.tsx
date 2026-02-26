@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import Navbar from "@/components/Navbar"
@@ -627,18 +627,70 @@ function FeesCard() {
 
 function GovernanceProposalList() {
   const pathname = usePathname()
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [showMenu])
+
   return (
     <DecorativeTable
       title="Recent proposals"
       headerRight={
-        <Link href={`${pathname}/governance/propose`} style={{
-          display: "flex", alignItems: "center", gap: "6px",
-          textDecoration: "none",
-          fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#0151af",
-        }}>
-          <PlusCircle size={14} color="#0151af" />
-          <span>Create proposal</span>
-        </Link>
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowMenu(v => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              background: "none", border: "none", cursor: "pointer", padding: 0,
+              fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#0151af",
+            }}
+          >
+            <PlusCircle size={14} color="#0151af" />
+            <span>Create proposal</span>
+          </button>
+
+          {showMenu && (
+            <div style={{
+              position: "absolute", top: "calc(100% + 8px)", right: 0,
+              background: "white", borderRadius: "12px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+              border: "1px solid #e5e5e5",
+              overflow: "hidden", zIndex: 50, minWidth: "200px",
+            }}>
+              <Link
+                href={`${pathname}/governance/propose?type=normal`}
+                onClick={() => setShowMenu(false)}
+                style={{
+                  display: "block", padding: "14px 16px", textDecoration: "none",
+                  fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif",
+                  fontWeight: 400, color: "#0a0d10",
+                  borderBottom: "1px solid #e5e5e5",
+                }}
+              >
+                Normal Proposal
+              </Link>
+              <Link
+                href={`${pathname}/governance/propose?type=expedited`}
+                onClick={() => setShowMenu(false)}
+                style={{
+                  display: "block", padding: "14px 16px", textDecoration: "none",
+                  fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif",
+                  fontWeight: 400, color: "#0a0d10",
+                }}
+              >
+                Expedited Proposal
+              </Link>
+            </div>
+          )}
+        </div>
       }
     >
       {/* Proposal rows */}

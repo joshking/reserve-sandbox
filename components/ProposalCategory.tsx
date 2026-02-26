@@ -32,13 +32,16 @@ const categories: Category[] = [
 ]
 
 const BLUE = "#0151af"
+const EXPEDITED_DISABLED = new Set(["dtf-basket", "dao"])
 
 export default function ProposalCategory({
   onBack,
   onSelect,
+  expedited = false,
 }: {
   onBack: () => void
   onSelect: (id: string) => void
+  expedited?: boolean
 }) {
   return (
     <div
@@ -102,26 +105,60 @@ export default function ProposalCategory({
           overflow: "hidden",
         }}
       >
-        {categories.map((cat, i) => (
-          <button
-            key={cat.id}
-            onClick={() => onSelect(cat.id)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "24px",
-              background: "transparent",
-              border: "none",
-              borderBottom: i < categories.length - 1 ? "1px solid #e5e5e5" : "none",
-              cursor: "pointer",
-              gap: "8px",
-              textAlign: "left",
-            }}
-          >
-            {/* Left: icon + label */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {categories.map((cat, i) => {
+          const disabled = expedited && EXPEDITED_DISABLED.has(cat.id)
+          return (
+            <button
+              key={cat.id}
+              onClick={() => !disabled && onSelect(cat.id)}
+              disabled={disabled}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+                padding: "24px",
+                background: "transparent",
+                border: "none",
+                borderBottom: i < categories.length - 1 ? "1px solid #e5e5e5" : "none",
+                cursor: disabled ? "not-allowed" : "pointer",
+                gap: "8px",
+                textAlign: "left",
+                opacity: disabled ? 0.35 : 1,
+              }}
+            >
+              {/* Left: icon + label */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    border: "1px solid black",
+                    color: "black",
+                    flexShrink: 0,
+                  }}
+                >
+                  {cat.icon}
+                </div>
+
+                <span
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    color: "black",
+                    lineHeight: "23px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {cat.label}
+                </span>
+              </div>
+
+              {/* Right: grey circle arrow */}
               <div
                 style={{
                   display: "flex",
@@ -130,45 +167,16 @@ export default function ProposalCategory({
                   width: "32px",
                   height: "32px",
                   borderRadius: "50%",
-                  border: "1px solid black",
-                  color: "black",
+                  background: "#f2f2f2",
                   flexShrink: 0,
-                }}
-              >
-                {cat.icon}
-              </div>
-
-              <span
-                style={{
-                  fontSize: "20px",
-                  fontWeight: 700,
                   color: "black",
-                  lineHeight: "23px",
-                  whiteSpace: "nowrap",
                 }}
               >
-                {cat.label}
-              </span>
-            </div>
-
-            {/* Right: grey circle arrow */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "#f2f2f2",
-                flexShrink: 0,
-                color: "black",
-              }}
-            >
-              <ArrowRight size={16} strokeWidth={2} />
-            </div>
-          </button>
-        ))}
+                <ArrowRight size={16} strokeWidth={2} />
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
