@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import ProposeClient from "./ProposeClient"
 
 export function generateStaticParams() {
@@ -11,5 +12,9 @@ export function generateStaticParams() {
 }
 
 export default function Page() {
-  return <ProposeClient />
+  return (
+    <Suspense>
+      <ProposeClient />
+    </Suspense>
+  )
 }
