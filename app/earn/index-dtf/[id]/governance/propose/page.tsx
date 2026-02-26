@@ -1,40 +1,15 @@
-"use client"
+import ProposeClient from "./ProposeClient"
 
-import { useRouter } from "next/navigation"
-import Navbar from "@/components/Navbar"
-import ProposalCategory from "@/components/ProposalCategory"
+export function generateStaticParams() {
+  return [
+    { id: "baix" },
+    { id: "bex" },
+    { id: "mvtt10f" },
+    { id: "bgci" },
+    { id: "dgi" },
+  ]
+}
 
-export default function ProposePage() {
-  const router = useRouter()
-
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#faf8f5",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Navbar />
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 24px",
-        }}
-      >
-        <ProposalCategory
-          onBack={() => router.back()}
-          onSelect={(id) => {
-            // TODO: route to proposal creation form for each category
-            console.log("Selected category:", id)
-          }}
-        />
-      </div>
-    </div>
-  )
+export default function Page() {
+  return <ProposeClient />
 }

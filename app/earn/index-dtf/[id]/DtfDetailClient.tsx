@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import Navbar from "@/components/Navbar"
+import DecorativeTable from "@/components/DecorativeTable"
 import {
   Globe2, Shuffle, Landmark, ArrowLeftRight, Fingerprint,
   Copy, ArrowUpRight, Calendar, Coins, ChevronRight,
@@ -627,16 +628,9 @@ function FeesCard() {
 function GovernanceProposalList() {
   const pathname = usePathname()
   return (
-    <div style={{ background: "white", borderRadius: "20px", overflow: "hidden" }}>
-      {/* Header */}
-      <div style={{
-        padding: "20px 24px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        borderBottom: "1px solid #e5e5e5",
-      }}>
-        <span style={{ fontSize: "20px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "#0a0d10" }}>
-          Recent proposals
-        </span>
+    <DecorativeTable
+      title="Recent proposals"
+      headerRight={
         <Link href={`${pathname}/governance/propose`} style={{
           display: "flex", alignItems: "center", gap: "6px",
           textDecoration: "none",
@@ -645,8 +639,8 @@ function GovernanceProposalList() {
           <PlusCircle size={14} color="#0151af" />
           <span>Create proposal</span>
         </Link>
-      </div>
-
+      }
+    >
       {/* Proposal rows */}
       {proposals.map((p, i) => (
         <div key={i} style={{
@@ -709,7 +703,7 @@ function GovernanceProposalList() {
           Show all
         </button>
       </div>
-    </div>
+    </DecorativeTable>
   )
 }
 

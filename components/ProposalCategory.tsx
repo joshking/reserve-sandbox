@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Asterisk, Settings, Crown, LayoutGrid } from "lucide-react"
+import { ArrowLeft, ArrowRight, Asterisk, Settings, Crown, LayoutGrid } from "lucide-react"
 
 type Category = {
   id: string
@@ -11,27 +11,27 @@ type Category = {
 const categories: Category[] = [
   {
     id: "dtf-basket",
-    icon: <Asterisk size={20} />,
+    icon: <Asterisk size={16} />,
     label: "DTF Basket",
   },
   {
     id: "dtf-settings",
-    icon: <Settings size={20} />,
+    icon: <Settings size={16} />,
     label: "DTF Settings",
   },
   {
     id: "basket-settings",
-    icon: <Crown size={20} />,
+    icon: <Crown size={16} />,
     label: "Basket settings",
   },
   {
     id: "dao",
-    icon: <LayoutGrid size={20} />,
+    icon: <LayoutGrid size={16} />,
     label: "DAO",
   },
 ]
 
-const BLUE = "#3d5ce5"
+const BLUE = "#0151af"
 
 export default function ProposalCategory({
   onBack,
@@ -45,18 +45,21 @@ export default function ProposalCategory({
       style={{
         width: "478px",
         background: "#f9eddd",
-        borderRadius: "16px",
-        overflow: "hidden",
+        borderRadius: "24px",
+        padding: "4px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
         fontFamily: "'TWK Lausanne', system-ui, sans-serif",
       }}
     >
-      {/* Header */}
+      {/* Header — on cream background */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: "12px",
-          padding: "20px 20px 16px",
+          padding: "16px 24px",
         }}
       >
         <button
@@ -68,7 +71,7 @@ export default function ProposalCategory({
             width: "32px",
             height: "32px",
             borderRadius: "50%",
-            border: `1.5px solid ${BLUE}`,
+            border: `1px solid ${BLUE}`,
             background: "transparent",
             color: BLUE,
             cursor: "pointer",
@@ -76,83 +79,95 @@ export default function ProposalCategory({
             padding: 0,
           }}
         >
-          <ChevronLeft size={18} strokeWidth={2} />
+          <ArrowLeft size={16} strokeWidth={2} />
         </button>
 
         <span
           style={{
-            fontSize: "18px",
+            fontSize: "20px",
             fontWeight: 700,
             color: BLUE,
-            lineHeight: 1,
+            lineHeight: "23px",
           }}
         >
           Select proposal category
         </span>
       </div>
 
-      {/* Category rows */}
-      <div style={{ padding: "0 16px 16px" }}>
+      {/* Options — white card */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "20px",
+          overflow: "hidden",
+        }}
+      >
         {categories.map((cat, i) => (
-          <div key={cat.id}>
-            <button
-              onClick={() => onSelect(cat.id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                width: "100%",
-                padding: "14px 4px",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                gap: "14px",
-                textAlign: "left",
-              }}
-            >
-              {/* Icon circle */}
+          <button
+            key={cat.id}
+            onClick={() => onSelect(cat.id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: "24px",
+              background: "transparent",
+              border: "none",
+              borderBottom: i < categories.length - 1 ? "1px solid #e5e5e5" : "none",
+              cursor: "pointer",
+              gap: "8px",
+              textAlign: "left",
+            }}
+          >
+            {/* Left: icon + label */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
+                  width: "32px",
+                  height: "32px",
                   borderRadius: "50%",
-                  border: "1.5px solid rgba(0,0,0,0.15)",
-                  color: "#0a0d10",
+                  border: "1px solid black",
+                  color: "black",
                   flexShrink: 0,
                 }}
               >
                 {cat.icon}
               </div>
 
-              {/* Label */}
               <span
                 style={{
-                  flex: 1,
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  color: "#0a0d10",
+                  fontSize: "20px",
+                  fontWeight: 700,
+                  color: "black",
+                  lineHeight: "23px",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {cat.label}
               </span>
+            </div>
 
-              {/* Arrow */}
-              <ChevronRight size={18} color="rgba(0,0,0,0.4)" />
-            </button>
-
-            {/* Divider (not after last item) */}
-            {i < categories.length - 1 && (
-              <div
-                style={{
-                  height: "1px",
-                  background: "rgba(0,0,0,0.08)",
-                  margin: "0 4px",
-                }}
-              />
-            )}
-          </div>
+            {/* Right: grey circle arrow */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "#f2f2f2",
+                flexShrink: 0,
+                color: "black",
+              }}
+            >
+              <ArrowRight size={16} strokeWidth={2} />
+            </div>
+          </button>
         ))}
       </div>
     </div>

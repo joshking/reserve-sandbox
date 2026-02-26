@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/reserve-sandbox",
+  basePath: process.env.NODE_ENV === "production" ? "/reserve-sandbox" : "",
   trailingSlash: true,
   images: { unoptimized: true },
 };
