@@ -1,43 +1,29 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
-import Navbar from "@/components/Navbar"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import ProposalCategory from "@/components/ProposalCategory"
 
 export default function ProposeClient() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const expedited = searchParams.get("type") === "expedited"
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#faf8f5",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Navbar />
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 24px",
+    <div style={{
+      flex: 1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "48px 24px",
+    }}>
+      <ProposalCategory
+        onBack={() => router.back()}
+        onSelect={(id) => {
+          router.push(`${pathname}/${id}`)
         }}
-      >
-        <ProposalCategory
-          onBack={() => router.back()}
-          onSelect={(id) => {
-            // TODO: route to proposal creation form for each category
-            console.log("Selected category:", id)
-          }}
-          expedited={expedited}
-        />
-      </div>
+        expedited={expedited}
+      />
     </div>
   )
 }
