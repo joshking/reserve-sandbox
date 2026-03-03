@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
       <Navbar />
-      <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
         <HeroSection />
         <CategorySelector selected={category} onSelect={setCategory} />
         <DtfTable category={category} />

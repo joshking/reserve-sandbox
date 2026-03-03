@@ -277,7 +277,7 @@ export default function DtfTable({ category: _category }: { category: string }) 
           filtered.map((dtf, i) => (
             <Link
               key={dtf.ticker}
-              href={`/earn/index-dtf/${dtf.ticker.toLowerCase()}`}
+              href={`/gov-v2/${dtf.ticker.toLowerCase()}`}
               style={{
                 display: "flex",
                 height: "80px",
