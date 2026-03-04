@@ -20,7 +20,6 @@ function getActiveTab(pathname: string): string {
   if (pathname.startsWith("/gov-v1/mint"))        return "mint"
   if (pathname.startsWith("/gov-v1/auctions"))    return "auctions"
   if (pathname.startsWith("/gov-v1/details"))     return "details"
-  if (pathname.startsWith("/gov-v1/governance"))  return "governance"
   return "gov-v1"
 }
 
