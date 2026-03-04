@@ -122,6 +122,8 @@ function ProposedChangesPanel() {
 // ── Steps Panel ───────────────────────────────────────────────────────────────
 
 function StepsPanel({ onBack }: { onBack: () => void }) {
+  const router = useRouter()
+  const params = useParams<{ id: string }>()
   return (
     <div style={{
       background: CREAM, borderRadius: "24px", padding: "4px",
