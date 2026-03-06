@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle, Search, X,
+  Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle, Search, X, ChevronDown, Check,
 } from "lucide-react"
 import DecorativeTable from "@/components/DecorativeTable"
 import ProposalTypeMenu from "@/components/ProposalTypeMenu"
@@ -15,7 +15,7 @@ const FONT = "'TWK Lausanne', system-ui, sans-serif"
 const proposals = [
   { title: "February 2026 BGCI",          quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "January 2026 Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Active",   type: "Fast"      },
+  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "12%", abstain: "0%",  status: "Active",   type: "Fast"      },
   { title: "Emergency Fee Update",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Pending",  type: "Fast"      },
   { title: "December 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "November 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
@@ -24,13 +24,17 @@ const proposals = [
   { title: "update DAO governance cycle", quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "bgci september rebalance",    quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "Expand basket to 40 tokens",  quorum: true, for: "60%",  against: "20%", abstain: "20%", status: "Active",   type: "Contested" },
-  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Fast"      },
+  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "32%", abstain: "0%",  status: "Executed", type: "Fast"      },
   { title: "BGCI August Rebalance",       quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "DTF V4 Upgrade",              quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
 ]
 
 const STATUS_FILTERS = ["All", "Active", "Pending", "Queued", "Executed", "Defeated"] as const
 type StatusFilter = typeof STATUS_FILTERS[number]
+
+const STATUS_OPTIONS = ["Active", "Pending", "Queued", "Executed", "Defeated"] as const
+
+const STATUS_ORDER: Record<string, number> = { Active: 0, Pending: 1, Queued: 2, Executed: 3, Defeated: 4 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   Active:   { bg: "#eff6ff", color: "#0151af", border: "#bfdbfe" },
@@ -58,6 +62,99 @@ const govStats = [
   { label: "Vote locked",      value: "8.4K $vIRSR-BGCI", Icon: Hash },
 ]
 
+// ── Status Multi-Select Dropdown ──────────────────────────────────────────────
+
+function StatusMultiSelect({
+  selected,
+  onChange,
+}: {
+  selected: string[]
+  onChange: (v: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const toggle = (status: string) => {
+    onChange(selected.includes(status) ? selected.filter(s => s !== status) : [...selected, status])
+  }
+
+  const label = selected.length === 0 ? "All statuses" : selected.length === 1 ? selected[0] : `${selected.length} statuses`
+
+  return (
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "9px 12px", borderRadius: "10px",
+          border: "1px solid #e5e5e5", background: "#fafafa",
+          fontSize: "13px", fontFamily: FONT, fontWeight: 300,
+          color: selected.length > 0 ? "#0151af" : "#666",
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+        <ChevronDown size={13} color={selected.length > 0 ? "#0151af" : "#aaa"} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50,
+          background: "white", borderRadius: "12px", border: "1px solid #e5e5e5",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: "160px", overflow: "hidden",
+        }}>
+          {STATUS_OPTIONS.map(status => {
+            const isChecked = selected.includes(status)
+            const style = STATUS_STYLES[status]
+            return (
+              <button
+                key={status}
+                onClick={() => toggle(status)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 14px", background: "none", border: "none",
+                  cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: 400,
+                  color: isChecked ? style.color : "#333",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: style.color, flexShrink: 0 }} />
+                  {status}
+                </span>
+                {isChecked && <Check size={13} color={style.color} />}
+              </button>
+            )
+          })}
+          {selected.length > 0 && (
+            <>
+              <div style={{ height: 1, background: "#f0ece6", margin: "0 10px" }} />
+              <button
+                onClick={() => onChange([])}
+                style={{
+                  width: "100%", padding: "10px 14px", background: "none", border: "none",
+                  cursor: "pointer", fontFamily: FONT, fontSize: "12px", fontWeight: 300,
+                  color: "#999", textAlign: "left",
+                }}
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Governance Proposal List ──────────────────────────────────────────────────
 
 function GovernanceProposalList() {
@@ -66,6 +163,7 @@ function GovernanceProposalList() {
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("All")
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
   const [search, setSearch] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -90,11 +188,15 @@ function GovernanceProposalList() {
     }
   }, [searchOpen])
 
-  const filtered = proposals.filter(p => {
-    const matchesStatus = activeFilter === "All" || p.status === activeFilter
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+  const filtered = proposals
+    .filter(p => {
+      const matchesStatus = searchOpen
+        ? selectedStatuses.length === 0 || selectedStatuses.includes(p.status)
+        : activeFilter === "All" || p.status === activeFilter
+      const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
+      return matchesStatus && matchesSearch
+    })
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99))
 
   return (
     <DecorativeTable
@@ -136,7 +238,7 @@ function GovernanceProposalList() {
         display: "flex", alignItems: "center", gap: "8px",
       }}>
         {/* Search icon + expanding input */}
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", flex: searchOpen ? 1 : "none", minWidth: 0 }}>
           <button
             onClick={() => setSearchOpen(o => !o)}
             style={{
@@ -156,7 +258,9 @@ function GovernanceProposalList() {
 
           {/* Expanding input wrapper */}
           <div style={{
-            maxWidth: searchOpen ? "220px" : "0px",
+            flex: 1,
+            minWidth: 0,
+            maxWidth: searchOpen ? "1000px" : "0px",
             opacity: searchOpen ? 1 : 0,
             overflow: "hidden",
             transition: "max-width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.2s ease",
@@ -169,13 +273,14 @@ function GovernanceProposalList() {
               onChange={e => setSearch(e.target.value)}
               onKeyDown={e => e.key === "Escape" && setSearchOpen(false)}
               style={{
-                width: "216px",
+                width: "100%",
                 padding: "7px 10px",
                 borderRadius: "8px",
                 border: "1px solid #e5e5e5",
                 background: "#fafafa",
                 fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#0a0d10",
                 outline: "none",
+                boxSizing: "border-box",
               }}
             />
           </div>
@@ -184,31 +289,35 @@ function GovernanceProposalList() {
         {/* Divider */}
         <div style={{ width: 1, height: 20, background: "#e5e5e5", flexShrink: 0 }} />
 
-        {/* Status filter chips */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-          {STATUS_FILTERS.map(status => {
-            const isActive = activeFilter === status
-            const style = status !== "All" ? STATUS_STYLES[status] : null
-            return (
-              <button
-                key={status}
-                onClick={() => setActiveFilter(status)}
-                style={{
-                  padding: "5px 13px", borderRadius: "999px", cursor: "pointer",
-                  fontSize: "13px", fontFamily: FONT, fontWeight: 400,
-                  border: isActive
-                    ? `1px solid ${style?.border ?? "#0a0d10"}`
-                    : "1px solid #e5e5e5",
-                  background: isActive ? (style?.bg ?? "#0a0d10") : "white",
-                  color: isActive ? (style?.color ?? "white") : "#666",
-                  transition: "all 0.15s",
-                }}
-              >
-                {status}
-              </button>
-            )
-          })}
-        </div>
+        {/* Status filter: chips when search closed, multi-select dropdown when open */}
+        {searchOpen ? (
+          <StatusMultiSelect selected={selectedStatuses} onChange={setSelectedStatuses} />
+        ) : (
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+            {STATUS_FILTERS.map(status => {
+              const isActive = activeFilter === status
+              const style = status !== "All" ? STATUS_STYLES[status] : null
+              return (
+                <button
+                  key={status}
+                  onClick={() => setActiveFilter(status)}
+                  style={{
+                    padding: "5px 13px", borderRadius: "999px", cursor: "pointer",
+                    fontSize: "13px", fontFamily: FONT, fontWeight: 400,
+                    border: isActive
+                      ? `1px solid ${style?.border ?? "#0a0d10"}`
+                      : "1px solid #e5e5e5",
+                    background: isActive ? (style?.bg ?? "#0a0d10") : "white",
+                    color: isActive ? (style?.color ?? "white") : "#666",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {status}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Proposal rows */}

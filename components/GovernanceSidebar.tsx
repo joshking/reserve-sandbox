@@ -9,8 +9,8 @@ const FONT = "'TWK Lausanne', sans-serif"
 const navItems = [
   { id: "overview",    label: "Overview",        Icon: Globe2,         href: "/gov-v1/overview" },
   { id: "mint",        label: "Mint + Redeem",   Icon: Shuffle,        href: "/gov-v1/mint" },
-  { id: "governance",  label: "Governance",      Icon: Landmark,       href: "/gov-v2" },
   { id: "gov-v1",      label: "Governance v1",   Icon: Scale,          href: "/gov-v1" },
+  { id: "governance",  label: "Governance v2",   Icon: Landmark,       href: "/gov-v2" },
   { id: "gov-v3",      label: "Governance v3",   Icon: Layers,         href: "/gov-v3" },
   { id: "auctions",    label: "Auctions",        Icon: ArrowLeftRight, href: "/gov-v1/auctions" },
   { id: "details",     label: "Details + Roles", Icon: Fingerprint,    href: "/gov-v1/details" },

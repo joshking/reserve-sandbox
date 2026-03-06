@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Binoculars, Coins, BadgePlus, Flower2, LayoutGrid, ChevronDown,
+  Binoculars, BadgePlus, Flower2, LayoutGrid, ChevronDown,
   ArrowRight, ArrowUpRight, Microscope, Route, Ear, Send,
   Search, Moon, Wallet,
   LandmarkIcon,

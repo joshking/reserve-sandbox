@@ -12,7 +12,7 @@ const FONT = "'TWK Lausanne', system-ui, sans-serif"
 const proposals = [
   { title: "February 2026 BGCI",          quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "January 2026 Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Active",   type: "Fast"      },
+  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "12%", abstain: "0%",  status: "Active",   type: "Fast"      },
   { title: "Emergency Fee Update",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Pending",  type: "Fast"      },
   { title: "December 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "November 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
@@ -21,13 +21,15 @@ const proposals = [
   { title: "update DAO governance cycle", quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "bgci september rebalance",    quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "Expand basket to 40 tokens",  quorum: true, for: "60%",  against: "20%", abstain: "20%", status: "Active",   type: "Contested" },
-  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Fast"      },
+  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "32%", abstain: "0%",  status: "Executed", type: "Fast"      },
   { title: "BGCI August Rebalance",       quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
   { title: "DTF V4 Upgrade",              quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
 ]
 
 const STATUS_FILTERS = ["All", "Active", "Pending", "Queued", "Executed", "Defeated"] as const
 type StatusFilter = typeof STATUS_FILTERS[number]
+
+const STATUS_ORDER: Record<string, number> = { Active: 0, Pending: 1, Queued: 2, Executed: 3, Defeated: 4 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   Active:   { bg: "#eff6ff", color: "#0151af", border: "#bfdbfe" },
@@ -61,11 +63,13 @@ function ProposalList() {
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("All")
   const [search, setSearch] = useState("")
 
-  const filtered = proposals.filter(p => {
-    const matchesStatus = activeFilter === "All" || p.status === activeFilter
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+  const filtered = proposals
+    .filter(p => {
+      const matchesStatus = activeFilter === "All" || p.status === activeFilter
+      const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
+      return matchesStatus && matchesSearch
+    })
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99))
 
   return (
     <DecorativeTable
