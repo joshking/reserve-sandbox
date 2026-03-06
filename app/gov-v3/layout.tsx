@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar"
 import GovernanceSidebar from "@/components/GovernanceSidebar"
 
-export default function DtfLayout({ children }: { children: React.ReactNode }) {
+export default function GovV3Layout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
       <Navbar />

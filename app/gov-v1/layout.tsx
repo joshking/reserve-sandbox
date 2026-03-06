@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar"
-import GovV1Sidebar from "./GovV1Sidebar"
+import GovernanceSidebar from "@/components/GovernanceSidebar"
 
 export default function GovV1Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,7 +7,7 @@ export default function GovV1Layout({ children }: { children: React.ReactNode })
       <Navbar />
       <div style={{ maxWidth: "1400px", margin: "0 auto", display: "flex" }}>
         <div style={{ width: 212, flexShrink: 0, position: "sticky", top: 0, height: "fit-content" }}>
-          <GovV1Sidebar />
+          <GovernanceSidebar />
         </div>
         <div style={{ flex: 1, display: "flex", gap: "8px", padding: "8px 8px 64px", minWidth: 0 }}>
           {children}

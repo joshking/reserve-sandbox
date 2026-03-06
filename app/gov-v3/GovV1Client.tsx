@@ -1,33 +1,36 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle, Search } from "lucide-react"
+import { Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle, Search, ChevronDown, Check } from "lucide-react"
 import DecorativeTable from "@/components/DecorativeTable"
 
 const FONT = "'TWK Lausanne', system-ui, sans-serif"
+const imgHandFist = "https://www.figma.com/api/mcp/asset/6870980d-1f4a-430d-a875-32cec3536cd9"
+const imgRocket = "https://www.figma.com/api/mcp/asset/c64bae85-6994-40fd-b674-1e2159de6be1"
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const proposals = [
-  { title: "February 2026 BGCI",          quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "January 2026 Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Active",   type: "Fast"      },
-  { title: "Emergency Fee Update",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Pending",  type: "Fast"      },
-  { title: "December 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "November 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "Reduce quorum threshold",     quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Queued",   type: "Normal"    },
-  { title: "BGCI October Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "update DAO governance cycle", quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "bgci september rebalance",    quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "Expand basket to 40 tokens",  quorum: true, for: "60%",  against: "20%", abstain: "20%", status: "Active",   type: "Contested" },
-  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Fast"      },
-  { title: "BGCI August Rebalance",       quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "DTF V4 Upgrade",              quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
+  { title: "February 2026 BGCI",          quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "January 2026 Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "0%",  abstain: "0%", status: "Active",   type: "Fast"      },
+  { title: "Emergency Fee Update",        quorum: false, for: "0%",  against: "0%",  abstain: "0%", status: "Pending",  type: "Fast"      },
+  { title: "December 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "November 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "Reduce quorum threshold",     quorum: false, for: "0%",  against: "0%",  abstain: "0%", status: "Queued",   type: "Normal"    },
+  { title: "BGCI October Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "update DAO governance cycle", quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "bgci september rebalance",    quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "Expand basket to 40 tokens",  quorum: true, for: "60%",  against: "20%", abstain: "20%", status: "Active", type: "Contested", votingEndsIn: "19 hours" },
+  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Fast"      },
+  { title: "BGCI August Rebalance",       quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
+  { title: "DTF V4 Upgrade",              quorum: true, for: "100%", against: "0%",  abstain: "0%", status: "Executed", type: "Normal"    },
 ]
 
-const STATUS_FILTERS = ["All", "Active", "Pending", "Queued", "Executed", "Defeated"] as const
-type StatusFilter = typeof STATUS_FILTERS[number]
+const STATUS_OPTIONS = ["Active", "Pending", "Queued", "Executed", "Defeated"] as const
+type StatusOption = typeof STATUS_OPTIONS[number]
+
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   Active:   { bg: "#eff6ff", color: "#0151af", border: "#bfdbfe" },
@@ -57,12 +60,108 @@ const govStats = [
 
 // ── Proposal List ─────────────────────────────────────────────────────────────
 
+function StatusMultiSelect({
+  selected,
+  onChange,
+}: {
+  selected: string[]
+  onChange: (v: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const toggle = (status: string) => {
+    onChange(selected.includes(status) ? selected.filter(s => s !== status) : [...selected, status])
+  }
+
+  const label = selected.length === 0 ? "All statuses" : selected.length === 1 ? selected[0] : `${selected.length} statuses`
+
+  return (
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "9px 12px", borderRadius: "10px",
+          border: "1px solid #e5e5e5", background: "#fafafa",
+          fontSize: "13px", fontFamily: FONT, fontWeight: 300,
+          color: selected.length > 0 ? "#0151af" : "#666",
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+        <ChevronDown size={13} color={selected.length > 0 ? "#0151af" : "#aaa"} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50,
+          background: "white", borderRadius: "12px", border: "1px solid #e5e5e5",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: "160px", overflow: "hidden",
+        }}>
+          {STATUS_OPTIONS.map(status => {
+            const isChecked = selected.includes(status)
+            const style = STATUS_STYLES[status]
+            return (
+              <button
+                key={status}
+                onClick={() => toggle(status)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 14px", background: "none", border: "none",
+                  cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: 400,
+                  color: isChecked ? style.color : "#333",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "8px",
+                }}>
+                  <span style={{
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: style.color, flexShrink: 0,
+                  }} />
+                  {status}
+                </span>
+                {isChecked && <Check size={13} color={style.color} />}
+              </button>
+            )
+          })}
+          {selected.length > 0 && (
+            <>
+              <div style={{ height: 1, background: "#f0ece6", margin: "0 10px" }} />
+              <button
+                onClick={() => onChange([])}
+                style={{
+                  width: "100%", padding: "10px 14px", background: "none", border: "none",
+                  cursor: "pointer", fontFamily: FONT, fontSize: "12px", fontWeight: 300,
+                  color: "#999", textAlign: "left",
+                }}
+              >
+                Clear filter
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ProposalList() {
-  const [activeFilter, setActiveFilter] = useState<StatusFilter>("All")
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [search, setSearch] = useState("")
 
   const filtered = proposals.filter(p => {
-    const matchesStatus = activeFilter === "All" || p.status === activeFilter
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(p.status)
     const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
     return matchesStatus && matchesSearch
   })
@@ -84,36 +183,10 @@ function ProposalList() {
         </Link>
       }
     >
-      {/* Filter + Search bar */}
-      <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e5e5", display: "flex", flexDirection: "column", gap: "10px" }}>
-        {/* Status filter chips */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {STATUS_FILTERS.map(status => {
-            const isActive = activeFilter === status
-            const style = status !== "All" ? STATUS_STYLES[status] : null
-            return (
-              <button
-                key={status}
-                onClick={() => setActiveFilter(status)}
-                style={{
-                  padding: "5px 13px", borderRadius: "999px", cursor: "pointer",
-                  fontSize: "13px", fontFamily: FONT, fontWeight: 400,
-                  border: isActive
-                    ? `1px solid ${style?.border ?? "#0a0d10"}`
-                    : "1px solid #e5e5e5",
-                  background: isActive ? (style?.bg ?? "#0a0d10") : "white",
-                  color: isActive ? (style?.color ?? "white") : "#666",
-                  transition: "all 0.15s",
-                }}
-              >
-                {status}
-              </button>
-            )
-          })}
-        </div>
-
+      {/* Inline search + filter row */}
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e5e5", display: "flex", gap: "8px", alignItems: "center" }}>
         {/* Search input */}
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", flex: 1 }}>
           <Search size={14} color="#aaa" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
           <input
             type="text"
@@ -129,6 +202,9 @@ function ProposalList() {
             }}
           />
         </div>
+
+        {/* Status multi-select */}
+        <StatusMultiSelect selected={statusFilter} onChange={setStatusFilter} />
       </div>
 
       {filtered.length === 0 ? (
@@ -137,6 +213,96 @@ function ProposalList() {
         </div>
       ) : filtered.map((p, i) => {
         const chipStyle = STATUS_STYLES[p.status] ?? { bg: "#f5f5f5", color: "#555", border: "#e5e5e5" }
+
+        if (p.type === "Contested") {
+          return (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "24px",
+              borderBottom: "1px solid #e5e5e5",
+              cursor: "pointer",
+            }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>
+                  {p.title}
+                </div>
+                <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                  <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0a0d10" }}>Voting ends in:</span>
+                  <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>{(p as any).votingEndsIn}</span>
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", fontFamily: FONT }}>
+                    <span style={{ fontWeight: 300, color: "#666" }}>Quorum?: </span>
+                    <span style={{ fontWeight: 500, color: "#11bb8d" }}>{p.quorum ? "Yes" : "No"}</span>
+                  </span>
+                  <div style={{ width: 2, height: 2, background: "#666", flexShrink: 0 }} />
+                  <span style={{ fontSize: "14px", fontFamily: FONT }}>
+                    <span style={{ fontWeight: 300, color: "#666" }}>Votes: </span>
+                    <span style={{ fontWeight: 500, color: "#0151af" }}>{p.for}</span>
+                    <span style={{ fontWeight: 300, color: "#999" }}> / </span>
+                    <span style={{ fontWeight: 500, color: "#d05a67" }}>{p.against}</span>
+                    <span style={{ fontWeight: 300, color: "#999" }}> / </span>
+                    <span style={{ fontWeight: 300, color: "#666" }}>{p.abstain}</span>
+                  </span>
+                  <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                    <img src={imgHandFist} alt="" style={{ width: 16, height: 16, filter: "brightness(0) saturate(100%) invert(56%) sepia(98%) saturate(1000%) hue-rotate(5deg) brightness(105%)" }} />
+                    <span style={{
+                      fontSize: "14px", fontFamily: FONT, fontWeight: 500, color: "#ff8a00",
+                    }}>Contested</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                padding: "8px 10px", borderRadius: "999px",
+                border: `1px solid ${chipStyle.border}`,
+                background: chipStyle.bg,
+                fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: chipStyle.color,
+                whiteSpace: "nowrap", flexShrink: 0, marginLeft: "16px",
+              }}>
+                {p.status}
+              </div>
+            </div>
+          )
+        }
+
+        if (p.type === "Fast") {
+          return (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "24px",
+              borderBottom: "1px solid #e5e5e5",
+              cursor: "pointer",
+            }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>
+                  {p.title}
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", fontFamily: FONT }}>
+                    <span style={{ fontWeight: 300, color: "#666" }}>Against: </span>
+                    <span style={{ fontWeight: 500, color: "#d05a67" }}>{p.against}</span>
+                  </span>
+                  <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                    <img src={imgRocket} alt="" style={{ width: 16, height: 16, filter: "brightness(0) saturate(100%) invert(38%) sepia(91%) saturate(600%) hue-rotate(163deg) brightness(95%)" }} />
+                    <span style={{
+                      fontSize: "14px", fontFamily: FONT, fontWeight: 500, color: "#0891b2",
+                    }}>Fast</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                padding: "8px 10px", borderRadius: "999px",
+                border: `1px solid ${chipStyle.border}`,
+                background: chipStyle.bg,
+                fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: chipStyle.color,
+                whiteSpace: "nowrap", flexShrink: 0, marginLeft: "16px",
+              }}>
+                {p.status}
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div key={i} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -146,31 +312,10 @@ function ProposalList() {
           }}>
             <div>
               <div style={{
-                display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px",
+                fontSize: "16px", fontFamily: FONT,
+                fontWeight: 500, color: "#0a0d10", marginBottom: "5px",
               }}>
-                <span style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 500, color: "#0a0d10" }}>
-                  {p.title}
-                </span>
-                {p.type === "Contested" && (
-                  <span style={{
-                    padding: "2px 8px", borderRadius: "16px",
-                    border: "1px solid #ff8a00", background: "rgba(255,138,0,0.2)",
-                    fontSize: "11px", fontFamily: FONT, fontWeight: 300, color: "#ff8a00",
-                    whiteSpace: "nowrap",
-                  }}>
-                    Contested
-                  </span>
-                )}
-                {p.type === "Fast" && (
-                  <span style={{
-                    padding: "2px 8px", borderRadius: "16px",
-                    border: "1px solid #a5f3fc", background: "rgba(8,145,178,0.1)",
-                    fontSize: "11px", fontFamily: FONT, fontWeight: 300, color: "#0891b2",
-                    whiteSpace: "nowrap",
-                  }}>
-                    Fast
-                  </span>
-                )}
+                {p.title}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Quorum?:</span>
