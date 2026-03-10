@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle,
   Search, X, ChevronDown, Check, ThumbsUp, ThumbsDown, Ban, Rocket, UserX, CircleCheckBig, HandFist,
+  UserRoundCheck, UserRoundX,
 } from "lucide-react"
 import DecorativeTable from "@/components/DecorativeTable"
 import ProposalTypeMenu from "@/components/ProposalTypeMenu"
@@ -70,7 +71,7 @@ const proposals: ProposalData[] = [
     title: "Expand basket to 40 tokens",
     status: "Active", type: "Normal",
     activeStep: 2, stepProgress: 45,
-    for: "60%", against: "20%", abstain: "20%", quorum: true,
+    for: "60%", against: "20%", abstain: "20%", quorum: false,
   },
   {
     title: "Governance Parameter Update",
@@ -83,19 +84,19 @@ const proposals: ProposalData[] = [
   { title: "January 2026 Rebalance",     status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "December 2025 Rebalance",    status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "November 2025 Rebalance",    status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "BGCI October Rebalance v2",  status: "Defeated", type: "Normal",   activeStep: 0, stepProgress: 0, for: "22%",  against: "8%",  abstain: "5%",  quorum: false },
   { title: "BGCI October Rebalance",     status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "update DAO governance cycle",status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "bgci september rebalance",   status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "BGCI uDOT dust removal",     status: "Executed", type: "Fast",     activeStep: 0, stepProgress: 0, for: "100%", against: "32%", abstain: "0%",  quorum: true  },
   { title: "BGCI August Rebalance",      status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
   { title: "DTF V4 Upgrade",             status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
-  { title: "BGCI October Rebalance v2",  status: "Defeated", type: "Normal",   activeStep: 0, stepProgress: 0, for: "22%",  against: "8%",  abstain: "5%",  quorum: false },
 ]
 
 const STATUS_FILTERS = ["All", "Active", "Pending", "Queued", "Executed", "Defeated"] as const
 type StatusFilter = typeof STATUS_FILTERS[number]
 const STATUS_OPTIONS = ["Active", "Pending", "Queued", "Executed", "Defeated"] as const
-const STATUS_ORDER: Record<string, number> = { Active: 0, Pending: 1, Queued: 2, Executed: 3, Defeated: 4 }
+const STATUS_ORDER: Record<string, number> = { Active: 0, Pending: 1, Queued: 2, Defeated: 3, Executed: 4 }
 
 // For filter chips only
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
@@ -325,6 +326,10 @@ function FeedbackRow({ p }: { p: ProposalData }) {
           `}</style>
           Voting in progress<span className="voting-ellipsis" />
         </span>
+        {!isFast && (p.quorum
+          ? <UserRoundCheck size={13} color="#3ebf6e" />
+          : <UserRoundX size={13} color="#ef4345" />
+        )}
         {isFast ? (
           <VoteStat icon={<ThumbsDown size={13} color="#0151af" />} value={p.against} color="#0151af" />
         ) : (
