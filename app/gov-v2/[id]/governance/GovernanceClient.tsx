@@ -1,48 +1,108 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle, Search, X, ChevronDown, Check,
+  Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle,
+  Search, X, ChevronDown, Check, ThumbsUp, ThumbsDown, Ban, Rocket, UserX,
 } from "lucide-react"
 import DecorativeTable from "@/components/DecorativeTable"
 import ProposalTypeMenu from "@/components/ProposalTypeMenu"
 
 const FONT = "'TWK Lausanne', system-ui, sans-serif"
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type ProposalStatus = "Active" | "Pending" | "Queued" | "Executed" | "Defeated"
+type ProposalType = "Normal" | "Fast" | "Contested"
+
+type ProposalData = {
+  title: string
+  status: ProposalStatus
+  type: ProposalType
+  // activeStep: 1=Delay, 2=Voting, 3=Voting finished, 4=Queued, 0=no bar
+  activeStep: 0 | 1 | 2 | 3 | 4
+  stepProgress: number // 0–100 within the active step
+  for: string
+  against: string
+  abstain: string
+  quorum: boolean
+  delayRemaining?: string
+  queueRemaining?: string
+}
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const proposals = [
-  { title: "February 2026 BGCI",          quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "January 2026 Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "March 2026 Rebalance",        quorum: false, for: "0%",  against: "12%", abstain: "0%",  status: "Active",   type: "Fast"      },
-  { title: "Emergency Fee Update",        quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Pending",  type: "Fast"      },
-  { title: "December 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "November 2025 Rebalance",     quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "Reduce quorum threshold",     quorum: false, for: "0%",  against: "0%",  abstain: "0%",  status: "Queued",   type: "Normal"    },
-  { title: "BGCI October Rebalance",      quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "update DAO governance cycle", quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "bgci september rebalance",    quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "Expand basket to 40 tokens",  quorum: true, for: "60%",  against: "20%", abstain: "20%", status: "Active",   type: "Contested" },
-  { title: "BGCI uDOT dust removal",      quorum: true, for: "100%", against: "32%", abstain: "0%",  status: "Executed", type: "Fast"      },
-  { title: "BGCI August Rebalance",       quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
-  { title: "DTF V4 Upgrade",              quorum: true, for: "100%", against: "0%",  abstain: "0%",  status: "Executed", type: "Normal"    },
+const proposals: ProposalData[] = [
+  {
+    title: "March 2026 Rebalance",
+    status: "Active", type: "Fast",
+    activeStep: 2, stepProgress: 84,
+    for: "50%", against: "12%", abstain: "0%", quorum: false,
+  },
+  {
+    title: "Emergency Fee Update",
+    status: "Pending", type: "Fast",
+    activeStep: 1, stepProgress: 30,
+    for: "0%", against: "0%", abstain: "0%", quorum: false,
+    delayRemaining: "3 days, 22 minutes",
+  },
+  {
+    title: "Reduce quorum threshold",
+    status: "Queued", type: "Normal",
+    activeStep: 4, stepProgress: 56,
+    for: "100%", against: "0%", abstain: "0%", quorum: true,
+    queueRemaining: "23 hours, 3 minutes",
+  },
+  {
+    title: "Expand basket to 40 tokens",
+    status: "Active", type: "Contested",
+    activeStep: 2, stepProgress: 45,
+    for: "60%", against: "20%", abstain: "20%", quorum: true,
+  },
+  {
+    title: "Governance Parameter Update",
+    status: "Pending", type: "Contested",
+    activeStep: 1, stepProgress: 65,
+    for: "60%", against: "20%", abstain: "20%", quorum: true,
+    delayRemaining: "1 day, 4 hours",
+  },
+  { title: "February 2026 BGCI",         status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "January 2026 Rebalance",     status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "December 2025 Rebalance",    status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "November 2025 Rebalance",    status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "BGCI October Rebalance",     status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "update DAO governance cycle",status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "bgci september rebalance",   status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "BGCI uDOT dust removal",     status: "Executed", type: "Fast",     activeStep: 0, stepProgress: 0, for: "100%", against: "32%", abstain: "0%",  quorum: true  },
+  { title: "BGCI August Rebalance",      status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "DTF V4 Upgrade",             status: "Executed", type: "Normal",   activeStep: 0, stepProgress: 0, for: "100%", against: "0%",  abstain: "0%",  quorum: true  },
+  { title: "BGCI October Rebalance v2",  status: "Defeated", type: "Normal",   activeStep: 0, stepProgress: 0, for: "22%",  against: "8%",  abstain: "5%",  quorum: false },
 ]
 
 const STATUS_FILTERS = ["All", "Active", "Pending", "Queued", "Executed", "Defeated"] as const
 type StatusFilter = typeof STATUS_FILTERS[number]
-
 const STATUS_OPTIONS = ["Active", "Pending", "Queued", "Executed", "Defeated"] as const
-
 const STATUS_ORDER: Record<string, number> = { Active: 0, Pending: 1, Queued: 2, Executed: 3, Defeated: 4 }
 
+// For filter chips only
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   Active:   { bg: "#eff6ff", color: "#0151af", border: "#bfdbfe" },
   Pending:  { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa" },
-  Queued:   { bg: "#f5f5f5", color: "#555",    border: "#e5e5e5" },
+  Queued:   { bg: "#f0f9ff", color: "#0891b2", border: "#bae6fd" },
   Executed: { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
   Defeated: { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
 }
+
+// Inline status dot colors (matching Figma)
+const STATUS_DOT: Record<string, string> = {
+  Active:   "#3BBEFF",
+  Pending:  "#f59e0b",
+  Queued:   "#0891b2",
+  Executed: "#3ebf6e",
+  Defeated: "#ef4345",
+}
+
 
 const topVoters = [
   { address: "0xD8B0...C940", votes: "5,079,818.00", weight: "10.84%" },
@@ -61,6 +121,274 @@ const govStats = [
   { label: "Voting Addresses", value: "78",               Icon: Users },
   { label: "Vote locked",      value: "8.4K $vIRSR-BGCI", Icon: Hash },
 ]
+
+// ── Progress Bar ──────────────────────────────────────────────────────────────
+
+function getSegmentTooltip(segmentIndex: number, p: ProposalData): string {
+  const { activeStep, for: pFor, against, abstain, quorum, delayRemaining, queueRemaining } = p
+  const stepNum = segmentIndex + 1 // 1-based
+
+  if (stepNum === 1) {
+    if (activeStep === 1) return `Voting delay in progress. Voting begins in ${delayRemaining ?? "a few days"}.`
+    if (activeStep > 1) return "Voting delay complete."
+    return "Voting delay has not started."
+  }
+  if (stepNum === 2) {
+    if (activeStep === 2) return `Voting in progress. For: ${pFor} · Against: ${against} · Abstain: ${abstain}. Quorum ${quorum ? "reached" : "not yet reached"}.`
+    if (activeStep > 2) return `Voting ended. For: ${pFor} · Against: ${against} · Abstain: ${abstain}.`
+    return "Voting period has not started yet."
+  }
+  if (stepNum === 3) {
+    if (activeStep === 3) return "Voting has ended. Proposal passed, awaiting queue."
+    if (activeStep > 3) return `Voting finished. Proposal passed with ${pFor} in favor.`
+    return "Voting has not finished yet."
+  }
+  if (stepNum === 4) {
+    if (activeStep === 4) return `Proposal queued for execution. Execution available in ${queueRemaining ?? "some time"}.`
+    if (activeStep > 4) return "Proposal has been executed."
+    return "Proposal will be queued after voting ends."
+  }
+  // stepNum === 5
+  return "Once executed, the proposal's on-chain actions will take effect. (Illustrative)"
+}
+
+
+function ProgressSegment({
+  state,
+  progress,
+  tooltipText,
+  isFirst,
+  isLast,
+}: {
+  state: "completed" | "active" | "upcoming"
+  progress?: number
+  tooltipText: string
+  isFirst?: boolean
+  isLast?: boolean
+}) {
+  const [tip, setTip] = useState<{ x: number; y: number } | null>(null)
+
+  const radius = isFirst ? "4px 2px 2px 4px" : isLast ? "2px 4px 4px 2px" : "2px"
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        height: 12,
+        borderRadius: radius,
+        background: state === "completed" ? "#3ebf6e" : "#e2e2e2",
+        overflow: "visible",
+        cursor: "default",
+        flexShrink: state === "active" ? undefined : 0,
+        flex: state === "active" ? "1 1 0" : undefined,
+        width: state === "active" ? undefined : 28,
+        minWidth: state === "active" ? 0 : 28,
+      }}
+      onMouseEnter={e => setTip({ x: e.clientX, y: e.clientY })}
+      onMouseMove={e => setTip({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setTip(null)}
+    >
+      {state === "active" && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: radius,
+          overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute",
+            left: 0, top: 0, bottom: 0,
+            width: `${progress ?? 50}%`,
+            background: "#0151af",
+            borderRadius: radius,
+          }} />
+        </div>
+      )}
+
+      {tip && (
+        <div
+          style={{
+            position: "fixed",
+            left: tip.x,
+            top: tip.y - 12,
+            transform: "translate(-50%, -100%)",
+            zIndex: 9999,
+            background: "#0a0d10",
+            color: "white",
+            padding: "7px 11px",
+            borderRadius: "8px",
+            fontSize: "12px",
+            fontFamily: FONT,
+            fontWeight: 300,
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          {tooltipText}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ProposalProgressBar({ proposal }: { proposal: ProposalData }) {
+  const { activeStep, stepProgress } = proposal
+
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center", width: "100%" }}>
+      {[0, 1, 2, 3, 4].map(i => {
+        const stepNum = i + 1
+        const state: "completed" | "active" | "upcoming" =
+          stepNum < activeStep ? "completed" :
+          stepNum === activeStep ? "active" : "upcoming"
+
+        return (
+          <ProgressSegment
+            key={i}
+            state={state}
+            progress={state === "active" ? stepProgress : undefined}
+            tooltipText={getSegmentTooltip(i, proposal)}
+            isFirst={i === 0}
+            isLast={i === 4}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Feedback row (below progress bar) ─────────────────────────────────────────
+
+function FeedbackRow({ p }: { p: ProposalData }) {
+  if (p.status === "Pending") {
+    return (
+      <div style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+        {"Voting delay: "}
+        <span style={{ color: "#0151af" }}>{p.delayRemaining ?? "calculating…"}</span>
+      </div>
+    )
+  }
+
+  if (p.status === "Active") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+          {p.quorum ? "Voting in progress…" : "Quorum not yet reached"}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <VoteStat icon={<ThumbsUp size={13} color="#0151af" />} value={p.for}     color="#0151af" />
+          <VoteStat icon={<ThumbsDown size={13} color="#888" />}   value={p.against} color="#888" />
+          <VoteStat icon={<Ban size={13} color="#bbb" />}           value={p.abstain} color="#bbb" />
+        </div>
+      </div>
+    )
+  }
+
+  if (p.status === "Queued") {
+    return (
+      <div style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+        {"Execution delay: "}
+        <span style={{ color: "#0151af" }}>{p.queueRemaining ?? "calculating…"}</span>
+      </div>
+    )
+  }
+
+  return null
+}
+
+function VoteStat({ icon, value, color }: { icon: React.ReactNode; value: string; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      {icon}
+      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color }}>{value}</span>
+    </div>
+  )
+}
+
+// ── Proposal Row ──────────────────────────────────────────────────────────────
+
+function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
+  const showBar = p.status === "Active" || p.status === "Pending" || p.status === "Queued"
+  const dotColor = STATUS_DOT[p.status] ?? "#666"
+
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      padding: "16px 24px",
+      borderBottom: isLast ? "none" : "1px solid #e5e5e5",
+      cursor: "pointer",
+    }}>
+      {/* Top row: title + optional type badge + status */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <span style={{
+            fontSize: "15px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {p.title}
+          </span>
+        </div>
+
+        {/* Inline status */}
+        <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Status:</span>
+          {p.status === "Active" ? (
+            <div style={{ position: "relative", width: 7, height: 7, flexShrink: 0 }}>
+              <style>{`@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }`}</style>
+              <div style={{
+                position: "absolute", inset: 0, borderRadius: "50%",
+                background: "#3BBEFF",
+                animation: "pulse-ring 1.4s ease-out infinite",
+              }} />
+              <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#3BBEFF" }} />
+            </div>
+          ) : (
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
+          )}
+          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: dotColor }}>
+            {p.status === "Defeated" ? "Dead" : p.status}
+          </span>
+        </div>
+      </div>
+
+      {/* Progress bar (Active, Pending, Queued) */}
+      {showBar && <ProposalProgressBar proposal={p} />}
+
+      {/* Feedback / vote info below bar */}
+      {showBar && <FeedbackRow p={p} />}
+
+      {/* Executed state: success message + final votes */}
+      {p.status === "Executed" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Rocket size={13} color="#0151af" />
+            <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>
+              Proposal has been executed successfully.
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <VoteStat icon={<ThumbsUp size={13} color="#bbb" />}   value={p.for}     color="#999" />
+            <VoteStat icon={<ThumbsDown size={13} color="#bbb" />}  value={p.against} color="#999" />
+            <VoteStat icon={<Ban size={13} color="#bbb" />}          value={p.abstain} color="#999" />
+          </div>
+        </div>
+      )}
+
+      {/* Defeated/Dead state */}
+      {p.status === "Defeated" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <UserX size={13} color="#ef4345" />
+          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#ef4345" }}>
+            Quorum was not reached. Proposal is now dead.
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ── Status Multi-Select Dropdown ──────────────────────────────────────────────
 
@@ -180,7 +508,6 @@ function GovernanceProposalList() {
 
   useEffect(() => {
     if (searchOpen) {
-      // Slight delay so the width transition has started before focus
       const t = setTimeout(() => inputRef.current?.focus(), 50)
       return () => clearTimeout(t)
     } else {
@@ -256,7 +583,6 @@ function GovernanceProposalList() {
             }
           </button>
 
-          {/* Expanding input wrapper */}
           <div style={{
             flex: 1,
             minWidth: 0,
@@ -289,7 +615,7 @@ function GovernanceProposalList() {
         {/* Divider */}
         <div style={{ width: 1, height: 20, background: "#e5e5e5", flexShrink: 0 }} />
 
-        {/* Status filter: chips when search closed, multi-select dropdown when open */}
+        {/* Status filter */}
         {searchOpen ? (
           <StatusMultiSelect selected={selectedStatuses} onChange={setSelectedStatuses} />
         ) : (
@@ -325,128 +651,9 @@ function GovernanceProposalList() {
         <div style={{ padding: "32px 24px", textAlign: "center", fontSize: "14px", fontFamily: FONT, fontWeight: 300, color: "#aaa" }}>
           No proposals found
         </div>
-      ) : filtered.map((p, i) => {
-        const chipStyle = STATUS_STYLES[p.status] ?? { bg: "#f5f5f5", color: "#555", border: "#e5e5e5" }
-
-        const readoutRow = (
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <span style={{ fontSize: "14px", fontFamily: FONT }}>
-              <span style={{ fontWeight: 300, color: "#666" }}>Quorum?: </span>
-              <span style={{ fontWeight: 500, color: "#11bb8d" }}>{p.quorum ? "Yes" : "No"}</span>
-            </span>
-            <div style={{ width: 2, height: 2, background: "#666", flexShrink: 0 }} />
-            <span style={{ fontSize: "14px", fontFamily: FONT }}>
-              <span style={{ fontWeight: 300, color: "#666" }}>Votes: </span>
-              <span style={{ fontWeight: 500, color: "#0151af" }}>{p.for}</span>
-              <span style={{ fontWeight: 300, color: "#999" }}> / </span>
-              <span style={{ fontWeight: 500, color: "#d05a67" }}>{p.against}</span>
-              <span style={{ fontWeight: 300, color: "#999" }}> / </span>
-              <span style={{ fontWeight: 300, color: "#666" }}>{p.abstain}</span>
-            </span>
-          </div>
-        )
-
-        const statusBadge = (
-          <div style={{
-            padding: "8px 10px", borderRadius: "999px",
-            border: `1px solid ${chipStyle.border}`,
-            background: chipStyle.bg,
-            fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: chipStyle.color,
-            whiteSpace: "nowrap", flexShrink: 0, marginLeft: "16px",
-          }}>
-            {p.status}
-          </div>
-        )
-
-        if (p.type === "Contested") {
-          return (
-            <div key={i} style={{
-              display: "flex", flexDirection: "column", gap: "8px",
-              padding: "24px", borderBottom: "1px solid #e5e5e5", cursor: "pointer",
-            }}>
-              {/* Orange "Contested" pill */}
-              <div style={{ display: "inline-flex" }}>
-                <div style={{
-                  padding: "2px 8px", borderRadius: "16px",
-                  border: "1px solid #ff8a00", background: "rgba(255,138,0,0.2)",
-                  fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#ff8a00",
-                }}>
-                  Contested
-                </div>
-              </div>
-              {/* Content + badge */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>{p.title}</div>
-                  {readoutRow}
-                </div>
-                {statusBadge}
-              </div>
-            </div>
-          )
-        }
-
-        if (p.type === "Fast") {
-          return (
-            <div key={i} style={{
-              display: "flex", flexDirection: "column", gap: "8px",
-              padding: "24px", borderBottom: "1px solid #e5e5e5", cursor: "pointer",
-            }}>
-              {/* Cyan "Fast" pill */}
-              <div style={{ display: "inline-flex" }}>
-                <div style={{
-                  padding: "2px 8px", borderRadius: "16px",
-                  border: "1px solid #a5f3fc", background: "rgba(8,145,178,0.1)",
-                  fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0891b2",
-                }}>
-                  Fast
-                </div>
-              </div>
-              {/* Content + badge */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>{p.title}</div>
-                  {readoutRow}
-                </div>
-                {statusBadge}
-              </div>
-            </div>
-          )
-        }
-
-        return (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "18px 24px", borderBottom: "1px solid #e5e5e5", cursor: "pointer",
-          }}>
-            <div>
-              <div style={{ fontSize: "16px", fontFamily: FONT, fontWeight: 500, color: "#0a0d10", marginBottom: "5px" }}>
-                {p.title}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Quorum?:</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#16a34a" }}>{p.quorum ? "Yes" : "No"}</span>
-                <span style={{ fontSize: "10px", color: "#ccc", lineHeight: 1 }}>●</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Votes:</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 500, color: "#16a34a" }}>{p.for}</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#aaa" }}>/</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 500, color: "#dc2626" }}>{p.against}</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#aaa" }}>/</span>
-                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>{p.abstain}</span>
-              </div>
-            </div>
-            <div style={{
-              padding: "5px 14px", borderRadius: "999px",
-              border: `1px solid ${chipStyle.border}`, background: chipStyle.bg,
-              fontSize: "13px", fontFamily: FONT, fontWeight: 400, color: chipStyle.color,
-              whiteSpace: "nowrap", flexShrink: 0, marginLeft: "16px",
-            }}>
-              {p.status}
-            </div>
-          </div>
-        )
-      })}
-
+      ) : filtered.map((p, i) => (
+        <ProposalRow key={i} p={p} isLast={i === filtered.length - 1} />
+      ))}
 
       {/* Show all */}
       <div style={{ padding: "16px 24px" }}>
@@ -455,7 +662,7 @@ function GovernanceProposalList() {
           border: "1px solid #e5e5e5", background: "white",
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer",
-          fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "#0a0d10",
+          fontSize: "14px", fontFamily: FONT, fontWeight: 500, color: "#0a0d10",
         }}>
           Show all
         </button>
@@ -484,24 +691,22 @@ function GovernanceStatsPanel() {
         <div style={{
           padding: "5px 14px", borderRadius: "999px",
           border: "1px solid #0151af",
-          fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "#0151af",
+          fontSize: "14px", fontFamily: FONT, fontWeight: 500, color: "#0151af",
         }}>
           3.42% APR
         </div>
       </div>
 
       <div style={{ padding: "20px" }}>
-        {/* Title */}
         <h2 style={{
-          fontSize: "22px", fontFamily: "'TWK Lausanne', sans-serif",
+          fontSize: "22px", fontFamily: FONT,
           fontWeight: 700, color: "#0a0d10", margin: "0 0 10px", lineHeight: 1.2,
         }}>
           Governed by $vIRSR-BGCI
         </h2>
 
-        {/* Description */}
         <p style={{
-          fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif",
+          fontSize: "14px", fontFamily: FONT,
           fontWeight: 300, color: "#0a0d10", lineHeight: 1.65, margin: "0 0 18px",
         }}>
           $RSR holders must vote-lock their tokens to become a governor. In exchange for locking
@@ -509,19 +714,17 @@ function GovernanceStatsPanel() {
           charged by the DTF.
         </p>
 
-        {/* Vote-lock CTA */}
         <button style={{
           width: "100%", padding: "14px", borderRadius: "12px",
           border: "none", background: "#0151af",
           display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
           cursor: "pointer", marginBottom: "4px",
-          fontSize: "15px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "white",
+          fontSize: "15px", fontFamily: FONT, fontWeight: 500, color: "white",
         }}>
           <Lock size={15} color="white" />
           <span>Vote-lock $RSR</span>
         </button>
 
-        {/* Stat rows */}
         {govStats.map(({ label, value, Icon }) => (
           <div key={label} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -535,17 +738,16 @@ function GovernanceStatsPanel() {
               }}>
                 <Icon size={15} color="#0a0d10" />
               </div>
-              <span style={{ fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#666" }}>
+              <span style={{ fontSize: "14px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
                 {label}
               </span>
             </div>
-            <span style={{ fontSize: "15px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 700, color: "#0a0d10" }}>
+            <span style={{ fontSize: "15px", fontFamily: FONT, fontWeight: 700, color: "#0a0d10" }}>
               {value}
             </span>
           </div>
         ))}
 
-        {/* Guardian rows */}
         {guardians.map((addr, i) => (
           <div key={i} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -560,10 +762,10 @@ function GovernanceStatsPanel() {
                 <Users size={15} color="#0a0d10" />
               </div>
               <div>
-                <div style={{ fontSize: "11px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#999", marginBottom: "2px" }}>
+                <div style={{ fontSize: "11px", fontFamily: FONT, fontWeight: 300, color: "#999", marginBottom: "2px" }}>
                   Guardians
                 </div>
-                <div style={{ fontSize: "14px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 500, color: "#0a0d10" }}>
+                <div style={{ fontSize: "14px", fontFamily: FONT, fontWeight: 500, color: "#0a0d10" }}>
                   {addr}
                 </div>
               </div>
@@ -590,26 +792,24 @@ function GovernanceStatsPanel() {
         {/* Top voting addresses */}
         <div style={{ marginTop: "12px" }}>
           <div style={{
-            fontSize: "16px", fontFamily: "'TWK Lausanne', sans-serif",
+            fontSize: "16px", fontFamily: FONT,
             fontWeight: 500, color: "#0a0d10", marginBottom: "10px",
           }}>
             Top voting addresses
           </div>
 
-          {/* Table header */}
           <div style={{ display: "flex", padding: "8px 0", borderBottom: "1px solid #e5e5e5" }}>
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: "12px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#999" }}>Address</span>
+              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Address</span>
             </div>
             <div style={{ width: 110, textAlign: "right" }}>
-              <span style={{ fontSize: "12px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#999" }}>Votes</span>
+              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Votes</span>
             </div>
             <div style={{ width: 80, textAlign: "right" }}>
-              <span style={{ fontSize: "12px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#999" }}>Vote weight</span>
+              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Vote weight</span>
             </div>
           </div>
 
-          {/* Voter rows */}
           {topVoters.map((voter, i) => (
             <div key={i} style={{
               display: "flex", alignItems: "center",
@@ -618,19 +818,19 @@ function GovernanceStatsPanel() {
             }}>
               <div style={{ flex: 1 }}>
                 <span style={{
-                  fontSize: "13px", fontFamily: "'TWK Lausanne', sans-serif",
+                  fontSize: "13px", fontFamily: FONT,
                   fontWeight: 300, color: "#0151af", cursor: "pointer",
                 }}>
                   {voter.address}
                 </span>
               </div>
               <div style={{ width: 110, textAlign: "right" }}>
-                <span style={{ fontSize: "13px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#0a0d10" }}>
+                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#0a0d10" }}>
                   {voter.votes}
                 </span>
               </div>
               <div style={{ width: 80, textAlign: "right" }}>
-                <span style={{ fontSize: "13px", fontFamily: "'TWK Lausanne', sans-serif", fontWeight: 300, color: "#0a0d10" }}>
+                <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#0a0d10" }}>
                   {voter.weight}
                 </span>
               </div>
