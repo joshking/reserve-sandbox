@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import {
   Copy, ArrowUpRight, Coins, LayoutGrid, Hash, Users, Lock, PlusCircle,
-  Search, X, ChevronDown, Check, ThumbsUp, ThumbsDown, Ban, Rocket, UserX,
+  Search, X, ChevronDown, Check, ThumbsUp, ThumbsDown, Ban, Rocket, UserX, CircleCheckBig, HandFist,
 } from "lucide-react"
 import DecorativeTable from "@/components/DecorativeTable"
 import ProposalTypeMenu from "@/components/ProposalTypeMenu"
@@ -41,6 +41,12 @@ const proposals: ProposalData[] = [
     for: "50%", against: "12%", abstain: "0%", quorum: false,
   },
   {
+    title: "Emergency RSR Yield Update",
+    status: "Active", type: "Fast",
+    activeStep: 2, stepProgress: 15,
+    for: "20%", against: "0%", abstain: "0%", quorum: false,
+  },
+  {
     title: "Emergency Fee Update",
     status: "Pending", type: "Fast",
     activeStep: 1, stepProgress: 30,
@@ -55,8 +61,14 @@ const proposals: ProposalData[] = [
     queueRemaining: "23 hours, 3 minutes",
   },
   {
-    title: "Expand basket to 40 tokens",
+    title: "Fee Cap Override",
     status: "Active", type: "Contested",
+    activeStep: 2, stepProgress: 84,
+    for: "50%", against: "20%", abstain: "10%", quorum: true,
+  },
+  {
+    title: "Expand basket to 40 tokens",
+    status: "Active", type: "Normal",
     activeStep: 2, stepProgress: 45,
     for: "60%", against: "20%", abstain: "20%", quorum: true,
   },
@@ -260,12 +272,35 @@ function ProposalProgressBar({ proposal }: { proposal: ProposalData }) {
 
 // ── Feedback row (below progress bar) ─────────────────────────────────────────
 
+function FastBadge() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+      <Rocket size={13} color="#0151af" />
+      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>Fast</span>
+    </div>
+  )
+}
+
+function ContestedBadge() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+      <HandFist size={13} color="#f08e35" />
+      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#f08e35" }}>Contested</span>
+    </div>
+  )
+}
+
 function FeedbackRow({ p }: { p: ProposalData }) {
+  const isFast = p.type === "Fast"
+
   if (p.status === "Pending") {
     return (
-      <div style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
-        {"Voting delay: "}
-        <span style={{ color: "#0151af" }}>{p.delayRemaining ?? "calculating…"}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+          {"Voting delay: "}
+          <span style={{ color: "#0151af" }}>{p.delayRemaining ?? "calculating…"}</span>
+        </span>
+        {isFast && <FastBadge />}
       </div>
     )
   }
@@ -274,22 +309,45 @@ function FeedbackRow({ p }: { p: ProposalData }) {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
-          {p.quorum ? "Voting in progress…" : "Quorum not yet reached"}
+          <style>{`
+            @keyframes ellipsis {
+              0%   { content: "."; }
+              33%  { content: ".."; }
+              66%  { content: "..."; }
+              100% { content: "."; }
+            }
+            .voting-ellipsis::after {
+              content: ".";
+              display: inline-block;
+              width: 1em;
+              animation: ellipsis 1.2s steps(1, end) infinite;
+            }
+          `}</style>
+          Voting in progress<span className="voting-ellipsis" />
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <VoteStat icon={<ThumbsUp size={13} color="#0151af" />} value={p.for}     color="#0151af" />
-          <VoteStat icon={<ThumbsDown size={13} color="#888" />}   value={p.against} color="#888" />
-          <VoteStat icon={<Ban size={13} color="#bbb" />}           value={p.abstain} color="#bbb" />
-        </div>
+        {isFast ? (
+          <VoteStat icon={<ThumbsDown size={13} color="#0151af" />} value={p.against} color="#0151af" />
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <VoteStat icon={<ThumbsUp size={13} color="#0151af" />} value={p.for}     color="#0151af" />
+            <VoteStat icon={<ThumbsDown size={13} color="#0151af" />} value={p.against} color="#0151af" />
+            <VoteStat icon={<Ban size={13} color="#0151af" />}        value={p.abstain} color="#0151af" />
+          </div>
+        )}
+        {isFast && <FastBadge />}
+        {p.type === "Contested" && <ContestedBadge />}
       </div>
     )
   }
 
   if (p.status === "Queued") {
     return (
-      <div style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
-        {"Execution delay: "}
-        <span style={{ color: "#0151af" }}>{p.queueRemaining ?? "calculating…"}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+          {"Execution delay: "}
+          <span style={{ color: "#0151af" }}>{p.queueRemaining ?? "calculating…"}</span>
+        </span>
+        {isFast && <FastBadge />}
       </div>
     )
   }
@@ -364,7 +422,7 @@ function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
       {p.status === "Executed" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Rocket size={13} color="#0151af" />
+            <CircleCheckBig size={13} color="#0151af" />
             <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>
               Proposal has been executed successfully.
             </span>
