@@ -273,6 +273,41 @@ function ProposalProgressBar({ proposal }: { proposal: ProposalData }) {
 
 // ── Feedback row (below progress bar) ─────────────────────────────────────────
 
+function IconTooltip({ children, text }: { children: React.ReactNode; text: string }) {
+  const [tip, setTip] = useState<{ x: number; y: number } | null>(null)
+  return (
+    <div
+      style={{ display: "flex", alignItems: "center", flexShrink: 0, cursor: "default" }}
+      onMouseEnter={e => setTip({ x: e.clientX, y: e.clientY })}
+      onMouseMove={e => setTip({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setTip(null)}
+    >
+      {children}
+      {tip && (
+        <div style={{
+          position: "fixed",
+          left: tip.x,
+          top: tip.y - 12,
+          transform: "translate(-50%, -100%)",
+          zIndex: 9999,
+          background: "#0a0d10",
+          color: "white",
+          padding: "7px 11px",
+          borderRadius: "8px",
+          fontSize: "13px",
+          fontFamily: FONT,
+          fontWeight: 300,
+          whiteSpace: "nowrap",
+          pointerEvents: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        }}>
+          {text}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function FastBadge() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
@@ -327,8 +362,8 @@ function FeedbackRow({ p }: { p: ProposalData }) {
           Voting in progress<span className="voting-ellipsis" />
         </span>
         {!isFast && (p.quorum
-          ? <UserRoundCheck size={13} color="#3ebf6e" />
-          : <UserRoundX size={13} color="#ef4345" />
+          ? <IconTooltip text="Quorum reached"><UserRoundCheck size={13} color="#3ebf6e" /></IconTooltip>
+          : <IconTooltip text="Quorum not reached"><UserRoundX size={13} color="#ef4345" /></IconTooltip>
         )}
         {isFast ? (
           <VoteStat icon={<ThumbsDown size={13} color="#0151af" />} value={p.against} color="#0151af" />
