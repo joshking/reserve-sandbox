@@ -230,7 +230,7 @@ function ProgressSegment({
             color: "white",
             padding: "7px 11px",
             borderRadius: "8px",
-            fontSize: "12px",
+            fontSize: "13px",
             fontFamily: FONT,
             fontWeight: 300,
             whiteSpace: "nowrap",
@@ -277,7 +277,7 @@ function FastBadge() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
       <Rocket size={13} color="#0151af" />
-      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>Fast</span>
+      <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>Fast</span>
     </div>
   )
 }
@@ -286,7 +286,7 @@ function ContestedBadge() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
       <HandFist size={13} color="#f08e35" />
-      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#f08e35" }}>Contested</span>
+      <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#f08e35" }}>Contested</span>
     </div>
   )
 }
@@ -297,7 +297,7 @@ function FeedbackRow({ p }: { p: ProposalData }) {
   if (p.status === "Pending") {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+        <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
           {"Voting delay: "}
           <span style={{ color: "#0151af" }}>{p.delayRemaining ?? "calculating…"}</span>
         </span>
@@ -309,7 +309,7 @@ function FeedbackRow({ p }: { p: ProposalData }) {
   if (p.status === "Active") {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+        <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
           <style>{`
             @keyframes ellipsis {
               0%   { content: "."; }
@@ -348,7 +348,7 @@ function FeedbackRow({ p }: { p: ProposalData }) {
   if (p.status === "Queued") {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
+        <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>
           {"Execution delay: "}
           <span style={{ color: "#0151af" }}>{p.queueRemaining ?? "calculating…"}</span>
         </span>
@@ -364,7 +364,7 @@ function VoteStat({ icon, value, color }: { icon: React.ReactNode; value: string
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
       {icon}
-      <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color }}>{value}</span>
+      <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color }}>{value}</span>
     </div>
   )
 }
@@ -397,7 +397,7 @@ function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
 
         {/* Inline status */}
         <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
-          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Status:</span>
+          <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#666" }}>Status:</span>
           {p.status === "Active" ? (
             <div style={{ position: "relative", width: 7, height: 7, flexShrink: 0 }}>
               <style>{`@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }`}</style>
@@ -411,7 +411,7 @@ function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
           ) : (
             <div style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
           )}
-          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 700, color: dotColor }}>
+          <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 700, color: dotColor }}>
             {p.status === "Defeated" ? "Dead" : p.status}
           </span>
         </div>
@@ -428,7 +428,7 @@ function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <CircleCheckBig size={13} color="#0151af" />
-            <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>
+            <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#0151af" }}>
               Proposal has been executed successfully.
             </span>
           </div>
@@ -444,7 +444,7 @@ function ProposalRow({ p, isLast }: { p: ProposalData; isLast: boolean }) {
       {p.status === "Defeated" && (
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <UserX size={13} color="#ef4345" />
-          <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#ef4345" }}>
+          <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#ef4345" }}>
             Quorum was not reached. Proposal is now dead.
           </span>
         </div>
@@ -532,7 +532,7 @@ function StatusMultiSelect({
                 onClick={() => onChange([])}
                 style={{
                   width: "100%", padding: "10px 14px", background: "none", border: "none",
-                  cursor: "pointer", fontFamily: FONT, fontSize: "12px", fontWeight: 300,
+                  cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: 300,
                   color: "#999", textAlign: "left",
                 }}
               >
@@ -863,13 +863,13 @@ function GovernanceStatsPanel() {
 
           <div style={{ display: "flex", padding: "8px 0", borderBottom: "1px solid #e5e5e5" }}>
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Address</span>
+              <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Address</span>
             </div>
             <div style={{ width: 110, textAlign: "right" }}>
-              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Votes</span>
+              <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Votes</span>
             </div>
             <div style={{ width: 80, textAlign: "right" }}>
-              <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Vote weight</span>
+              <span style={{ fontSize: "13px", fontFamily: FONT, fontWeight: 300, color: "#999" }}>Vote weight</span>
             </div>
           </div>
 
