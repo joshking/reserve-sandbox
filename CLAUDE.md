@@ -25,6 +25,7 @@ Static Next.js (App Router) site for the Reserve protocol. Deployed as a static 
   - Handles cream outer bg, white inner card, rounded corners
   - Never build custom card wrappers
 - Icons: `lucide-react`
+- Most components will be figma components and will connect via the Figma MCP. 
 
 ## File Structure Pattern
 - `app/[route]/layout.tsx` — layout shell

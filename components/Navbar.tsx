@@ -64,7 +64,7 @@ function TelegramIcon() {
 }
 
 const MORE_ITEMS: MoreItem[] = [
-  { label: "DTF Explorer",      desc: "Get an overview of everything going on",     icon: <CircleIcon><Microscope size={20} color="#444" strokeWidth={1.5} /></CircleIcon>, href: "/",                                  external: false },
+  { label: "DTF Explorer",      desc: "Get an overview of everything going on",     icon: <CircleIcon><Microscope size={20} color="#444" strokeWidth={1.5} /></CircleIcon>, href: "/explorer",                          external: false },
   { label: "Reserve Bridge",    desc: "Transfer DTFs across chains",                icon: <CircleIcon><Route      size={20} color="#444" strokeWidth={1.5} /></CircleIcon>, href: "/bridge",                            external: false },
   { label: "Yield DTF Creator", desc: "Create a new overcollateralized Yield DTF", icon: <CircleIcon><Flower2    size={20} color="#444" strokeWidth={1.5} /></CircleIcon>, href: "/create",                            external: false },
   { label: "Feedback",          desc: "File issues or upvote existing ones",        icon: <div style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ear size={28} color="#a78bfa" strokeWidth={1.5} /></div>, href: "https://github.com", external: true },
