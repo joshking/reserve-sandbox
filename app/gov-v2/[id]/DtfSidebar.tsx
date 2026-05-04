@@ -11,14 +11,12 @@ const sidebarItems: { id: string; label: string; Icon: React.ElementType; suffix
   { id: "mint",       label: "Mint + Redeem",   Icon: Shuffle,        suffix: "/mint" },
   { id: "gov-v1",     label: "Governance v1",   Icon: Scale,          suffix: "",  href: "/gov-v1" },
   { id: "governance", label: "Governance v2",   Icon: Landmark,       suffix: "/governance" },
-  { id: "gov-v3",     label: "Governance v3",   Icon: Scale,          suffix: "",  href: "/gov-v3" },
   { id: "auctions",   label: "Auctions",        Icon: ArrowLeftRight, suffix: "/auctions" },
   { id: "details",    label: "Details + Roles", Icon: Fingerprint,    suffix: "/details" },
 ]
 
 function getActiveTab(pathname: string): string {
   if (pathname.startsWith("/gov-v1"))   return "gov-v1"
-  if (pathname.startsWith("/gov-v3"))   return "gov-v3"
   if (pathname.includes("/mint"))       return "mint"
   if (pathname.includes("/governance")) return "governance"
   if (pathname.includes("/auctions"))   return "auctions"

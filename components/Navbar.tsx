@@ -168,7 +168,7 @@ export default function Navbar() {
   const [darkMode, setDarkMode] = useState(false)
 
   return (
-    <nav style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#fefbf8" }}>
+    <nav style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#FEFCFB", borderBottom: "1px solid #E5E5E5" }}>
       <div style={{
         maxWidth: "1400px",
         margin: "0 auto",

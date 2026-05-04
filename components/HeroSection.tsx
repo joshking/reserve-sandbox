@@ -29,30 +29,29 @@ export default function HeroSection() {
           flexShrink: 0,
         }}
       >
-        {/* Avatar icon */}
+        {/* Avatar icon — Reserve.org brand mark */}
         <div
           style={{
             width: "52px",
             height: "52px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle at 40% 35%, #d0daea, #b8c8d8)",
+            borderRadius: "26px",
+            background: "#0151af",
             border: "1px solid rgba(0,0,0,0.1)",
             marginBottom: "8px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            overflow: "hidden",
+            flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              background: "radial-gradient(circle at 35% 30%, #8aaac8, #5a7a9a)",
-              border: "1px solid rgba(0,0,0,0.1)",
-            }}
-          />
+          <span style={{
+            fontSize: "16px",
+            fontFamily: "'TWK Lausanne', system-ui, sans-serif",
+            fontWeight: 700,
+            color: "white",
+            lineHeight: 1,
+            userSelect: "none",
+          }}>R</span>
         </div>
 
         <p

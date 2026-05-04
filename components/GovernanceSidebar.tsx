@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Globe2, Shuffle, Landmark, ArrowLeftRight, Fingerprint, Scale, WalletCards, Layers } from "lucide-react"
+import { Globe2, Shuffle, Landmark, ArrowLeftRight, Fingerprint, Scale, WalletCards } from "lucide-react"
 
 const FONT = "'TWK Lausanne', sans-serif"
 
@@ -11,7 +11,6 @@ const navItems = [
   { id: "mint",        label: "Mint + Redeem",   Icon: Shuffle,        href: "/gov-v1/mint" },
   { id: "gov-v1",      label: "Governance v1",   Icon: Scale,          href: "/gov-v1" },
   { id: "governance",  label: "Governance v2",   Icon: Landmark,       href: "/gov-v2" },
-  { id: "gov-v3",      label: "Governance v3",   Icon: Layers,         href: "/gov-v3" },
   { id: "auctions",    label: "Auctions",        Icon: ArrowLeftRight, href: "/gov-v1/auctions" },
   { id: "details",     label: "Details + Roles", Icon: Fingerprint,    href: "/gov-v1/details" },
 ]
@@ -21,7 +20,6 @@ function getActiveTab(pathname: string): string {
   if (pathname.startsWith("/gov-v1/mint"))        return "mint"
   if (pathname.startsWith("/gov-v1/auctions"))    return "auctions"
   if (pathname.startsWith("/gov-v1/details"))     return "details"
-  if (pathname.startsWith("/gov-v3"))             return "gov-v3"
   if (pathname.startsWith("/gov-v2"))             return "governance"
   return "gov-v1"
 }
