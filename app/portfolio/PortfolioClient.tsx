@@ -1329,13 +1329,40 @@ function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 
 // ── Transactions view ─────────────────────────────────────────────────────────
 
+const TX_TYPE_COLORS: Record<string, { text: string; bg: string }> = {
+  Stake:    { text: "#0151af", bg: "rgba(1,81,175,0.10)"    },
+  Lock:     { text: "#6d44c4", bg: "rgba(109,68,196,0.10)"  },
+  Vote:     { text: "#1a9e5f", bg: "rgba(26,158,95,0.10)"   },
+  Delegate: { text: "#c47a00", bg: "rgba(196,122,0,0.10)"   },
+  Withdraw: { text: "#c43a3a", bg: "rgba(196,58,58,0.10)"   },
+}
+
+function TypePill({ type }: { type: string }) {
+  const c = TX_TYPE_COLORS[type] ?? { text: "#666", bg: "#f2f2f2" }
+  return (
+    <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: c.text, background: c.bg, borderRadius: 42, padding: "4px 12px", whiteSpace: "nowrap" }}>
+      {type}
+    </span>
+  )
+}
+
 function TransactionsView({ mobile }: { mobile: boolean }) {
   const rows = [
-    { date: "December 14, 2025", dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", type: "Mint",   amount: "$1,124.66", units: "(7.98)",  tx: "0x053c...6c50" },
-    { date: "December 14, 2025", dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", type: "Mint",   amount: "$1,124.66", units: "(7.98)",  tx: "0x053c...6c50" },
-    { date: "December 14, 2025", dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", type: "Mint",   amount: "$1,124.66", units: "(7.98)",  tx: "0x053c...6c50" },
-    { date: "December 14, 2025", dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", type: "Mint",   amount: "$1,124.66", units: "(7.98)",  tx: "0x053c...6c50" },
-    { date: "November 09, 2025", dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", type: "Redeem", amount: "$702.91",   units: "(4.99)",  tx: "0x0c19...84ca" },
+    { date: "Dec 14, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Stake",    description: "Staked 500,000 RSR into eth+RSR",                   tx: "0x053c...6c50" },
+    { date: "Dec 14, 2025", token: "vlRSR-LCAP",   letter: "#", color: "#1a6bbf", type: "Lock",     description: "Vote-locked 162,300 RSR for CF Large Cap Index",     tx: "0x1a4d...3f21" },
+    { date: "Dec 12, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Delegate", description: "Delegated voting power to 0x4880...c3a8",            tx: "0x9f2b...c811" },
+    { date: "Dec 10, 2025", token: "vlRSR-BGCI",   letter: "#", color: "#1a6bbf", type: "Vote",     description: "Voted FOR on proposal #481244 — BGCI basket rebalance", tx: "0x7c3e...9d04" },
+    { date: "Dec 07, 2025", token: "vlRSR-MVDA25", letter: "#", color: "#1a6bbf", type: "Lock",     description: "Vote-locked 80,000 RSR for MVDA25",                  tx: "0x2b8a...f190" },
+    { date: "Dec 03, 2025", token: "vlRSR-LCAP",   letter: "#", color: "#1a6bbf", type: "Vote",     description: "Voted FOR on proposal #480892 — add wBTC collateral", tx: "0x4f1d...a203" },
+    { date: "Nov 29, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Stake",    description: "Staked 250,000 RSR into eth+RSR",                   tx: "0x6d1c...5a77" },
+    { date: "Nov 22, 2025", token: "vlRSR-BGCI",   letter: "#", color: "#1a6bbf", type: "Withdraw", description: "Withdrew 50,000 RSR from vlRSR-BGCI",                tx: "0x3e9f...2b44" },
+    { date: "Nov 15, 2025", token: "vlRSR-LCAP",   letter: "#", color: "#1a6bbf", type: "Vote",     description: "Voted AGAINST on proposal #479011 — fee adjustment", tx: "0xab12...7c93" },
+    { date: "Nov 09, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Delegate", description: "Delegated to 0x6905...C8dE",                        tx: "0x0c19...84ca" },
+    { date: "Oct 30, 2025", token: "vlRSR-MVDA25", letter: "#", color: "#1a6bbf", type: "Lock",     description: "Vote-locked 162,300 RSR for MVDA25",                tx: "0x5f8d...1e62" },
+    { date: "Oct 18, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Stake",    description: "Staked 1,000,000 RSR into eth+RSR",                 tx: "0xe72a...08bc" },
+    { date: "Oct 05, 2025", token: "vlRSR-BGCI",   letter: "#", color: "#1a6bbf", type: "Lock",     description: "Vote-locked 259,100 RSR for BGCI",                  tx: "0xc39d...f441" },
+    { date: "Sep 21, 2025", token: "RSR",          letter: "ℝ", color: "#1a2f6e", type: "Withdraw", description: "Withdrew 100,000 RSR from eth+RSR staking",          tx: "0x8b5e...3d90" },
+    { date: "Sep 09, 2025", token: "vlRSR-LCAP",   letter: "#", color: "#1a6bbf", type: "Delegate", description: "Delegated LCAP voting power to 0x4480...c3a8",       tx: "0xd104...9cf2" },
   ]
 
   return (
@@ -1346,7 +1373,7 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
           <ArrowDownUp size={20} color="#0151af" />
           <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>Transactions</span>
         </div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Your history of your recent transactions</p>
+        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Your history of recent on-chain activity</p>
       </div>
 
       {/* Search + filters */}
@@ -1354,15 +1381,10 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, border: "1px solid #e5e5e5", borderRadius: 16, padding: "16px 20px", background: "white" }}>
             <Search size={16} color="#999" />
-            <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "rgba(0,0,0,0.4)" }}>Search by name, ticker or collateral</span>
+            <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "rgba(0,0,0,0.4)" }}>Search by token or description</span>
           </div>
           <button style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid #e5e5e5", borderRadius: 16, padding: "16px 20px", background: "white", cursor: "pointer", fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "rgba(0,0,0,0.7)", whiteSpace: "nowrap" }}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              {["#7b8fcc", "#6abcaa", "#e8907a"].map((c, i) => (
-                <div key={i} style={{ width: 16, height: 16, borderRadius: "50%", background: c, border: "2px solid white", marginLeft: i > 0 ? -6 : 0, position: "relative", zIndex: 3 - i }} />
-              ))}
-            </div>
-            <span style={{ marginLeft: 4 }}>All Vote-lock tokens</span>
+            <span>All Types</span>
             <ChevronDown size={16} color="#666" />
           </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid #e5e5e5", borderRadius: 16, padding: "16px 20px", background: "white", cursor: "pointer", fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "rgba(0,0,0,0.7)", whiteSpace: "nowrap" }}>
@@ -1380,34 +1402,35 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
       {/* Table */}
       <TableCard>
         <THead>
-          {!mobile && <THCell width={200}>Date</THCell>}
-          <THCell width={mobile ? undefined : 320} flex={mobile ? 1 : undefined}>DTF</THCell>
-          <THCell width={mobile ? 80 : 200}>Type</THCell>
-          <THCell width={mobile ? 110 : 200}>Amount</THCell>
-          <THCell width={mobile ? 80 : 248}>View</THCell>
+          <THCell width={mobile ? 100 : 155}>Date</THCell>
+          <THCell width={mobile ? 110 : 185}>Token</THCell>
+          {!mobile && <THCell width={140}>Type</THCell>}
+          <THCell flex={1}>Description</THCell>
+          {!mobile && <THCell width={175}>Explorer</THCell>}
         </THead>
         {rows.map((row, i) => (
-          <TRow key={i} bordered={i < rows.length - 1}>
-            {!mobile && <Cell width={200}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.date}</span></Cell>}
-            <Cell width={mobile ? undefined : 320} flex={mobile ? 1 : undefined}>
+          <TRow key={i} bordered={i < rows.length - 1} minHeight={72}>
+            <Cell width={mobile ? 100 : 155}>
+              <span style={{ fontFamily: FONT, fontSize: mobile ? 12 : 14, fontWeight: 300, color: "#666" }}>{row.date}</span>
+            </Cell>
+            <Cell width={mobile ? 110 : 185}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <TokenBubble letter={row.letter} color={row.color} />
-                <span style={{ fontFamily: FONT, fontSize: mobile ? 14 : 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
+                <TokenBubble letter={row.letter} color={row.color} size={28} />
+                <span style={{ fontFamily: FONT, fontSize: mobile ? 13 : 14, fontWeight: 600, color: "#0a0d10", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.token}</span>
               </div>
             </Cell>
-            <Cell width={mobile ? 80 : 200}><span style={{ fontFamily: FONT, fontSize: mobile ? 14 : 16, fontWeight: 300, color: "#0a0d10" }}>{row.type}</span></Cell>
-            <Cell width={mobile ? 110 : 200}>
-              <div style={{ display: "flex", gap: 4, alignItems: "baseline" }}>
-                <span style={{ fontFamily: FONT, fontSize: mobile ? 13 : 16, fontWeight: 300, color: "#0a0d10" }}>{row.amount}</span>
-                <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999" }}>{row.units}</span>
-              </div>
+            {!mobile && <Cell width={140}><TypePill type={row.type} /></Cell>}
+            <Cell flex={1}>
+              <span style={{ fontFamily: FONT, fontSize: mobile ? 13 : 15, fontWeight: 300, color: "#0a0d10" }}>{mobile ? `${row.type} · ` : ""}{row.description}</span>
             </Cell>
-            <Cell width={mobile ? 80 : 248}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.tx}</span>
-                <ArrowUpRight size={14} color="#0151af" />
-              </div>
-            </Cell>
+            {!mobile && (
+              <Cell width={175}>
+                <Link href="#" style={{ display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
+                  <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0151af" }}>{row.tx}</span>
+                  <ArrowUpRight size={13} color="#0151af" />
+                </Link>
+              </Cell>
+            )}
           </TRow>
         ))}
       </TableCard>
