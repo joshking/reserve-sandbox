@@ -166,6 +166,22 @@ const RSR_PRESET_TOTALS: Record<Preset, PresetTotals> = {
   "alltime": { staking: "",           votelock: "42,131.92", total: "42,131.92", pct: "2.3%", change: "+971.453",positive: true },
 }
 
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+function labelToIso(label: string): string {
+  const [mon, year] = label.split(" ")
+  const m = String(MONTH_NAMES.indexOf(mon) + 1).padStart(2, "0")
+  return `${year}-${m}-01`
+}
+
+function filterByDateRange<T extends { label: string }>(data: T[], from: string, to: string): T[] {
+  if (!from && !to) return data
+  return data.filter(d => {
+    const iso = labelToIso(d.label)
+    return (!from || iso >= from) && (!to || iso <= to)
+  })
+}
+
 function rewardsPath(data: RewardsPoint[], layer: "staking" | "votelock"): string {
   const pts = data.map((d, i) => ({
     ...d,
@@ -1272,9 +1288,12 @@ function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
     setPreset(null)
   }
 
-  const sliceCount = preset ? PRESET_SLICES[preset] : 12
-  const filteredData = REWARDS_DATA.slice(-sliceCount)
-  const filteredRsrData = RSR_DATA.slice(-sliceCount)
+  const filteredData = preset
+    ? REWARDS_DATA.slice(-PRESET_SLICES[preset])
+    : filterByDateRange(REWARDS_DATA, fromDate, toDate)
+  const filteredRsrData = preset
+    ? RSR_DATA.slice(-PRESET_SLICES[preset])
+    : filterByDateRange(RSR_DATA, fromDate, toDate)
   const totals = currency === "rsr"
     ? (preset ? RSR_PRESET_TOTALS[preset] : RSR_PRESET_TOTALS["alltime"])
     : (preset ? USD_PRESET_TOTALS[preset] : USD_PRESET_TOTALS["alltime"])
