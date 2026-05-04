@@ -6,7 +6,7 @@ import {
   ArrowUpRight, ArrowRight, TrendingUp, TrendingDown,
   Globe, Flower2, Scale, Landmark, MoreVertical,
   ArrowDownUp, CheckSquare, Lock, Copy,
-  Shell, Blend, ChevronDown, Gift, FileDown, Search,
+  ChartLine, ChevronDown, Gift, FileDown, Search, ArrowUpDown,
 } from "lucide-react"
 
 const FONT = "'TWK Lausanne', system-ui, sans-serif"
@@ -319,9 +319,9 @@ type Section = "overview" | "rewards" | "transactions"
 
 function PortfolioSidebar({ section, onSection }: { section: Section; onSection: (s: Section) => void }) {
   const items: { key: Section; Icon: React.ElementType; label: string }[] = [
-    { key: "overview",     Icon: Shell,    label: "Overview"     },
-    { key: "rewards",      Icon: Blend,    label: "Rewards"      },
-    { key: "transactions", Icon: Landmark, label: "Transactions" },
+    { key: "overview",     Icon: ChartLine,  label: "Overview"     },
+    { key: "rewards",      Icon: Gift,       label: "Rewards"      },
+    { key: "transactions", Icon: ArrowUpDown, label: "Transactions" },
   ]
   return (
     <div style={{ width: 200, flexShrink: 0, padding: "32px 24px" }}>
@@ -467,7 +467,7 @@ function BreakdownCard() {
         <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
         <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Value by asset type</p>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {rows.map(({ label, value }) => (
           <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{label}</span>
@@ -536,12 +536,12 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
           <>
             <THead>
               <THCell flex={1}>Name</THCell>
-              <THCell width={180}>Performance <span style={{ color: "#999", marginLeft: 4 }}>(24H)</span></THCell>
-              {!tablet && <THCell width={150}>Unrealized P/L</THCell>}
-              {!tablet && <THCell width={150}>Average price</THCell>}
-              {!tablet && <THCell width={150}>Market Cap</THCell>}
-              <THCell width={130}>Balance</THCell>
-              <THCell width={130}>Value</THCell>
+              <THCell width={190}>Performance <span style={{ color: "#999", marginLeft: 4 }}>(24H)</span></THCell>
+              {!tablet && <THCell width={155}>Unrealized P/L</THCell>}
+              {!tablet && <THCell width={155}>Average price</THCell>}
+              {!tablet && <THCell width={155}>Market Cap</THCell>}
+              <THCell width={145}>Balance</THCell>
+              <THCell width={145}>Value</THCell>
             </THead>
             {rows.map((row, i) => (
               <TRow key={row.ticker} bordered={i < rows.length - 1}>
@@ -554,12 +554,12 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
                     </div>
                   </div>
                 </Cell>
-                <Cell width={180}><PerfCell pct={row.perf} abs={row.perfAbs} positive={row.perfPos} /></Cell>
-                {!tablet && <Cell width={150}><div><p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
-                {!tablet && <Cell width={150}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
-                {!tablet && <Cell width={150}><ValuePair main={row.mktCap} sub={row.mktCapSub} mainWeight={300} /></Cell>}
-                <Cell width={130}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
-                <Cell width={130}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
+                <Cell width={190}><PerfCell pct={row.perf} abs={row.perfAbs} positive={row.perfPos} /></Cell>
+                {!tablet && <Cell width={155}><div><p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
+                {!tablet && <Cell width={155}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
+                {!tablet && <Cell width={155}><ValuePair main={row.mktCap} sub={row.mktCapSub} mainWeight={300} /></Cell>}
+                <Cell width={145}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
+                <Cell width={145}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
               </TRow>
             ))}
           </>
@@ -589,12 +589,12 @@ function StakedPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: b
           <>
             <THead>
               <THCell flex={1}>Position</THCell>
-              {!tablet && <THCell width={150}>Governs</THCell>}
-              {!tablet && <THCell width={100}>APY</THCell>}
-              <THCell width={130}>Balance</THCell>
-              <THCell width={150}>Value (USD)</THCell>
-              <THCell width={150}>Value (RSR)</THCell>
-              <THCell width={80}>Actions</THCell>
+              {!tablet && <THCell width={140}>Governs</THCell>}
+              {!tablet && <THCell width={90}>APY</THCell>}
+              <THCell width={145}>Balance</THCell>
+              <THCell width={145}>Value (USD)</THCell>
+              <THCell width={145}>Value (RSR)</THCell>
+              <THCell width={130}>Actions</THCell>
             </THead>
             <TRow bordered={false}>
               <Cell flex={1}>
@@ -603,12 +603,12 @@ function StakedPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: b
                   <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>eth+RSR</span>
                 </div>
               </Cell>
-              {!tablet && <Cell width={150}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>LCAP</span></Cell>}
-              {!tablet && <Cell width={100}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>7.05%</span></Cell>}
-              <Cell width={130}><ValuePair main="162.3K" sub="eth+RSR" mainWeight={300} /></Cell>
-              <Cell width={150}><ValuePair main="$65.32" sub="USD" /></Cell>
-              <Cell width={150}><ValuePair main="123.2K" sub="RSR" /></Cell>
-              <Cell width={80}>
+              {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>LCAP</span></Cell>}
+              {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>7.05%</span></Cell>}
+              <Cell width={145}><ValuePair main="162.3K" sub="eth+RSR" mainWeight={300} /></Cell>
+              <Cell width={145}><ValuePair main="$65.32" sub="USD" /></Cell>
+              <Cell width={145}><ValuePair main="123.2K" sub="RSR" /></Cell>
+              <Cell width={130}>
                 <button style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex" }}>
                   <MoreVertical size={20} color="#666" />
                 </button>
@@ -663,11 +663,11 @@ function VoteLockedSection({ tablet, mobile }: { tablet: boolean; mobile: boolea
           <>
             <THead>
               <THCell flex={1}>Governance Token</THCell>
-              {!tablet && <THCell width={150}>Governs</THCell>}
-              {!tablet && <THCell width={100}>APY</THCell>}
-              <THCell width={130}>Balance</THCell>
-              <THCell width={150}>Value</THCell>
-              <THCell width={80}>Actions</THCell>
+              {!tablet && <THCell width={140}>Governs</THCell>}
+              {!tablet && <THCell width={90}>APY</THCell>}
+              <THCell width={145}>Balance</THCell>
+              <THCell width={145}>Value</THCell>
+              <THCell width={175}>Actions</THCell>
             </THead>
             {rows.map((row, i) => (
               <TRow key={row.token} bordered={i < rows.length - 1} minHeight={row.unlockStatus ? 117 : 96}>
@@ -689,14 +689,14 @@ function VoteLockedSection({ tablet, mobile }: { tablet: boolean; mobile: boolea
                     </div>
                   </div>
                 </Cell>
-                {!tablet && <Cell width={150}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.governs}</span></Cell>}
-                {!tablet && <Cell width={100}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.apy}</span></Cell>}
-                <Cell width={130}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
-                <Cell width={150}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
-                <Cell width={80}>
+                {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.governs}</span></Cell>}
+                {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.apy}</span></Cell>}
+                <Cell width={145}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
+                <Cell width={145}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
+                <Cell width={175}>
                   {row.action === "withdraw"
                     ? <OutlineBtn label="Withdraw" />
-                    : <button style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex" }}><MoreVertical size={20} color="#666" /></button>
+                    : <OutlineBtn label={`Collect ${row.collectAmt}`} />
                   }
                 </Cell>
               </TRow>
@@ -741,16 +741,16 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
         {(tablet || mobile) ? cardRows : (
           <>
             <THead>
-              <THCell width={320}>DTF Governed</THCell>
-              <THCell width={350}>Title</THCell>
+              <THCell width={200}>DTF Governed</THCell>
+              <THCell flex={1}>Title</THCell>
               <THCell width={190}>Date Proposed</THCell>
               <THCell width={150}>ID</THCell>
-              <THCell flex={1}>Status</THCell>
+              <THCell width={160}>Status</THCell>
             </THead>
             {rows.map((row, i) => (
               <TRow key={row.dtf + i} bordered={i < rows.length - 1}>
-                <Cell width={320}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><TokenBubble letter={row.letter} color={row.color} size={40} /><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span></div></Cell>
-                <Cell width={350}>
+                <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><TokenBubble letter={row.letter} color={row.color} size={40} /><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span></div></Cell>
+                <Cell flex={1}>
                   <div style={{ padding: "16px 0", display: "flex", flexDirection: "column", gap: 6 }}>
                     <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", letterSpacing: -0.64 }}>{row.title}</span>
                     {row.detail.type === "votes" ? (
@@ -779,7 +779,7 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
                   </div>
                 </Cell>
                 <Cell width={150}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.id}</span><Copy size={14} color="#666" style={{ cursor: "pointer" }} /></div></Cell>
-                <Cell flex={1}><StatusPill label={row.status.label} color={row.status.color} /></Cell>
+                <Cell width={160}><StatusPill label={row.status.label} color={row.status.color} /></Cell>
               </TRow>
             ))}
           </>
@@ -825,29 +825,34 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
           <>
             <THead>
               <THCell flex={1}>DTF Governed</THCell>
-              <THCell width={200}>Governance Token</THCell>
-              {!tablet && <THCell width={160}>Vote Power</THCell>}
-              <THCell width={130}>Vote Weight</THCell>
-              {!tablet && <THCell width={200}>Vote-locker Address</THCell>}
-              {!tablet && <THCell width={192}>Delegate Address</THCell>}
-              <THCell width={80}>Actions</THCell>
+              <THCell width={170}>Governance Token</THCell>
+              {!tablet && <THCell width={130}>Vote Power</THCell>}
+              <THCell width={120}>Vote Weight</THCell>
+              {!tablet && <THCell width={160}>Vote-locker Address</THCell>}
+              {!tablet && <THCell width={160}>Delegate Address</THCell>}
+              <THCell width={130}>Actions</THCell>
             </THead>
             {rows.map((row, i) => (
               <TRow key={`${row.dtf}-${i}`} bordered={i < rows.length - 1}>
-                <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><TokenBubble letter={row.letter} color={row.color} size={28} /><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0151af" }}>{row.dtf}</span></div></Cell>
-                <Cell width={200}><span style={{ fontFamily: FONT, fontSize: 15, fontWeight: 300, color: "#0151af" }}>{row.govToken}</span></Cell>
+                <Cell flex={1}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    <TokenBubble letter={row.letter} color={row.color} size={28} />
+                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0151af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.dtf}</span>
+                  </div>
+                </Cell>
+                <Cell width={170}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>{row.govToken}</span></Cell>
                 {!tablet && (
-                  <Cell width={160}>
+                  <Cell width={130}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span>
                       {row.badge && <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: row.badge === "Delegated" ? "#008632" : "#0151af", background: row.badge === "Delegated" ? "rgba(35,196,95,0.15)" : "rgba(1,81,175,0.15)", borderRadius: 42, height: 20, padding: "0 8px", display: "inline-flex", alignItems: "center" }}>{row.badge}</span>}
                     </div>
                   </Cell>
                 )}
-                <Cell width={130}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
-                {!tablet && <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.locker}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
-                {!tablet && <Cell width={192}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.delegate}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
-                <Cell width={80}><button style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex" }}><MoreVertical size={20} color="#666" /></button></Cell>
+                <Cell width={120}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
+                {!tablet && <Cell width={160}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.locker}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
+                {!tablet && <Cell width={160}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.delegate}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
+                <Cell width={130}><button style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex" }}><MoreVertical size={20} color="#666" /></button></Cell>
               </TRow>
             ))}
           </>
