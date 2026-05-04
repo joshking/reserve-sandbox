@@ -131,12 +131,19 @@ const PRESET_SLICES: Record<Preset, number> = {
 }
 
 const PRESET_DATES: Record<Preset, { from: string; to: string }> = {
-  "24hr":    { from: "Dec 31, 2025", to: "Dec 31, 2025" },
-  "7d":      { from: "Dec 25, 2025", to: "Dec 31, 2025" },
-  "1m":      { from: "Dec 01, 2025", to: "Dec 31, 2025" },
-  "3m":      { from: "Oct 01, 2025", to: "Dec 31, 2025" },
-  "6m":      { from: "Jul 01, 2025", to: "Dec 31, 2025" },
-  "alltime": { from: "Jan 01, 2025", to: "Dec 31, 2025" },
+  "24hr":    { from: "2025-12-31", to: "2025-12-31" },
+  "7d":      { from: "2025-12-25", to: "2025-12-31" },
+  "1m":      { from: "2025-12-01", to: "2025-12-31" },
+  "3m":      { from: "2025-10-01", to: "2025-12-31" },
+  "6m":      { from: "2025-07-01", to: "2025-12-31" },
+  "alltime": { from: "2025-01-01", to: "2025-12-31" },
+}
+
+function formatDateDisplay(iso: string): string {
+  if (!iso) return ""
+  const [y, m, d] = iso.split("-")
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  return `${months[parseInt(m) - 1]} ${d}, ${y}`
 }
 
 type PresetTotals = { staking: string; votelock: string; total: string; pct: string; change: string; positive: boolean }
@@ -472,7 +479,7 @@ function BreakdownCard() {
   )
 }
 
-function RewardsCard() {
+function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
     <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
@@ -480,7 +487,7 @@ function RewardsCard() {
         <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Your total participation awards available across all chains</p>
       </div>
       <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af" }}>$43.23</span>
-      <button style={{ background: "#0151af", color: "white", border: "none", borderRadius: 16, padding: "8px 16px", fontFamily: FONT, fontSize: 12, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start" }}>
+      <button onClick={onRewards} style={{ background: "#0151af", color: "white", border: "none", borderRadius: 16, padding: "8px 16px", fontFamily: FONT, fontSize: 12, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start" }}>
         Collect Rewards
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -892,14 +899,14 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 
 // ── Overview view ─────────────────────────────────────────────────────────────
 
-function OverviewView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
+function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: boolean; onRewards: () => void }) {
   return (
     <>
       <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? 20 : 40, alignItems: "flex-start", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
         <PortfolioChart />
         <div style={{ width: mobile ? "100%" : 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 16 }}>
           <BreakdownCard />
-          <RewardsCard />
+          <RewardsCard onRewards={onRewards} />
         </div>
       </div>
       <DTFPositionsSection tablet={tablet} mobile={mobile} />
@@ -1007,6 +1014,47 @@ function RewardsChart({
 
 // ── Rewards right panel ───────────────────────────────────────────────────────
 
+function DatePickerField({ value, onChange, tooltip }: {
+  value: string
+  onChange: (v: string) => void
+  tooltip: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function openPicker() {
+    const el = inputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null
+    el?.showPicker ? el.showPicker() : el?.click()
+  }
+
+  return (
+    <div
+      style={{ position: "relative", flex: 1, minWidth: 0 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div
+        onClick={openPicker}
+        style={{ border: "1px solid #e5e5e5", borderRadius: 8, padding: "8px 10px", fontFamily: FONT, fontSize: 13, fontWeight: 300, color: value ? "#0a0d10" : "#999", background: "white", userSelect: "none", cursor: "pointer" }}
+      >
+        {value ? formatDateDisplay(value) : "—"}
+      </div>
+      <input
+        ref={inputRef}
+        type="date"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0, top: 0, left: 0 }}
+      />
+      {hovered && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: "#0a0d10", color: "white", fontFamily: FONT, fontSize: 12, fontWeight: 400, whiteSpace: "nowrap", padding: "5px 10px", borderRadius: 6, pointerEvents: "none", zIndex: 10 }}>
+          {tooltip}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CustomizeReportPanel({
   fromDate, toDate, onFromDate, onToDate, currency, onCurrency,
 }: {
@@ -1040,21 +1088,9 @@ function CustomizeReportPanel({
       <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
         <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Date range:</span>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <input
-            type="text"
-            value={fromDate}
-            onChange={e => onFromDate(e.target.value)}
-            placeholder="Jan 01, 2025"
-            style={{ flex: 1, border: "1px solid #e5e5e5", borderRadius: 8, padding: "8px 10px", fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10", outline: "none", background: "white", minWidth: 0 }}
-          />
+          <DatePickerField value={fromDate} onChange={onFromDate} tooltip="From Date" />
           <span style={{ fontFamily: FONT, fontSize: 13, color: "#999", flexShrink: 0 }}>–</span>
-          <input
-            type="text"
-            value={toDate}
-            onChange={e => onToDate(e.target.value)}
-            placeholder="Dec 31, 2025"
-            style={{ flex: 1, border: "1px solid #e5e5e5", borderRadius: 8, padding: "8px 10px", fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10", outline: "none", background: "white", minWidth: 0 }}
-          />
+          <DatePickerField value={toDate} onChange={onToDate} tooltip="To Date" />
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1366,7 +1402,7 @@ export default function PortfolioClient() {
       <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "flex-start" }}>
         <PortfolioSidebar section={section} onSection={setSection} />
         <div style={{ flex: 1, minWidth: 0, paddingBottom: 80 }}>
-          {section === "overview"     && <OverviewView tablet={tablet} mobile={mobile} />}
+          {section === "overview"     && <OverviewView tablet={tablet} mobile={mobile} onRewards={() => setSection("rewards")} />}
           {section === "rewards"      && <RewardsView tablet={tablet} mobile={mobile} />}
           {section === "transactions" && <TransactionsView mobile={mobile} />}
         </div>
