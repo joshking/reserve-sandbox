@@ -480,7 +480,7 @@ function BreakdownCard() {
   return (
     <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
+        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
         <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Value by asset type</p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -499,7 +499,7 @@ function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
     <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Rewards Available</p>
+        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Rewards Available</p>
         <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Your total participation awards available across all chains</p>
       </div>
       <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af" }}>$43.23</span>
