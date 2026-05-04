@@ -1107,7 +1107,7 @@ function CustomizeReportPanel({
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Date range:</span>
+        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Date range</span>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <DatePickerField value={fromDate} onChange={onFromDate} tooltip="From Date" />
           <span style={{ fontFamily: FONT, fontSize: 13, color: "#999", flexShrink: 0 }}>–</span>
@@ -1115,7 +1115,7 @@ function CustomizeReportPanel({
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Value basis:</span>
+        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Value basis</span>
         {[
           { key: "market" as const, label: "Current market value" },
           { key: "purchase" as const, label: "Time of purchase" },
