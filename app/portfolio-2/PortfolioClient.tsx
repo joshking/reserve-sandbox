@@ -433,6 +433,7 @@ function PortfolioChart() {
     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div style={{ paddingLeft: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: "#666", letterSpacing: 1, textTransform: "uppercase" }}>Total Holdings</span>
           <span style={{ fontFamily: FONT, fontSize: 46, fontWeight: 500, color: "#0151af", lineHeight: "50px" }}>$31,373.24</span>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <TrendingUp size={18} color="#0151af" />
@@ -453,8 +454,8 @@ function PortfolioChart() {
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 16, width: "100%" }}>
-        <div ref={containerRef} style={{ flex: 1, minWidth: 0, position: "relative", height: 400, cursor: "crosshair" }} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)}>
-          <svg viewBox={`0 0 ${CW} ${CH}`} width="100%" height="370" preserveAspectRatio="none" style={{ display: "block" }}>
+        <div ref={containerRef} style={{ flex: 1, minWidth: 0, position: "relative", height: 352, cursor: "crosshair" }} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)}>
+          <svg viewBox={`0 0 ${CW} ${CH}`} width="100%" height="352" preserveAspectRatio="none" style={{ display: "block" }}>
             <defs>
               <linearGradient id="portfolioSolid" x1="0" y1="0" x2="0" y2={CH} gradientUnits="userSpaceOnUse">
                 <stop offset="0" stopColor="#084894" />
@@ -480,7 +481,7 @@ function PortfolioChart() {
           </div>
           {tooltip}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: 370, flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: 352, flexShrink: 0 }}>
           {yLabels.map((l) => (
             <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#666", textAlign: "right", display: "block" }}>{l}</span>
           ))}
@@ -522,8 +523,8 @@ function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
     <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Rewards Available</p>
-        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Your total participation awards available across all chains</p>
+        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Pending Rewards</p>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>You have $43.23 of rewards that can be claimed. These rewards are earned by governing Index DTFs. Rewards earned from staking RSR on Yield DTFs does not require any action.</p>
       </div>
       <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af" }}>$43.23</span>
       <button onClick={onRewards} style={{ background: "#0151af", color: "white", border: "none", borderRadius: 16, padding: "8px 16px", fontFamily: FONT, fontSize: 12, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start" }}>
@@ -975,6 +976,9 @@ function RewardsChart({
   currency: "usd" | "rsr"
 }) {
   const [chartHovered, setChartHovered] = useState(false)
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const tabs: { label: string; key: Preset }[] = [
     { label: "24hr",     key: "24hr"    },
     { label: "7d",       key: "7d"      },
@@ -989,15 +993,63 @@ function RewardsChart({
   const yLabels = isRsr
     ? ["45K", "36K", "27K", "18K", "9K", "0.0"]
     : ["$36K", "$28K", "$20K", "$12K", "$4K", "0.0"]
-  const xLabels = activeData.length <= 4
-    ? activeData.map(d => d.label)
-    : [0, Math.floor(activeData.length / 3), Math.floor(activeData.length * 2 / 3), activeData.length - 1]
-        .map(i => activeData[i].label)
+  const xLabels = activeData.map(d => d.label)
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const svgX = ((e.clientX - rect.left) / rect.width) * RCW
+    const n = activeData.length
+    if (n === 0) return
+    const idx = n === 1 ? 0 : Math.round((svgX / RCW) * (n - 1))
+    setHoverIdx(Math.max(0, Math.min(n - 1, idx)))
+  }
+
+  const hpRd  = hoverIdx !== null && hoverIdx < filteredData.length ? filteredData[hoverIdx] : null
+  const hpPct = hoverIdx !== null && activeData.length > 1 ? (hoverIdx / (activeData.length - 1)) * 100 : 50
+  const hpSvgX = hoverIdx !== null
+    ? (activeData.length === 1 ? RCW / 2 : (hoverIdx / (activeData.length - 1)) * RCW)
+    : null
+
+  const hp = hoverIdx !== null ? activeData[hoverIdx] : null
+  const tooltip = hp ? (
+    <div style={{
+      position: "absolute", top: 16,
+      left: hpPct > 55 ? undefined : `calc(${hpPct}% + 14px)`,
+      right: hpPct > 55 ? `calc(${100 - hpPct}% + 14px)` : undefined,
+      background: "white", borderRadius: 12, padding: "12px 14px",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.1)", minWidth: 190, zIndex: 10, pointerEvents: "none",
+    }}>
+      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#666", margin: "0 0 8px" }}>{hp.label}</p>
+      {isRsr ? (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#7b8fcc" }} />
+            <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>RSR rewards</span>
+          </div>
+          <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: "#0a0d10" }}>{(hp as RSRPoint).total.toLocaleString()}</span>
+        </div>
+      ) : hpRd ? (
+        [
+          { label: "Staking rewards", color: "#7b8fcc", val: hpRd.staking },
+          { label: "Vote-lock rewards", color: "#6abcaa", val: hpRd.votelock },
+        ].map(({ label, color, val }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{label}</span>
+            </div>
+            <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: "#0a0d10" }}>${val.toLocaleString()}</span>
+          </div>
+        ))
+      ) : null}
+    </div>
+  ) : null
 
   return (
     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ paddingLeft: 24, display: "flex", flexDirection: "column", gap: 8 }}>
           <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: "#666", letterSpacing: 1, textTransform: "uppercase" }}>
             {isRsr ? "Total RSR Rewards" : "Total USD Rewards"}
           </span>
@@ -1019,7 +1071,13 @@ function RewardsChart({
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 16, width: "100%" }}>
-        <div style={{ flex: 1, minWidth: 0 }} onMouseEnter={() => setChartHovered(true)} onMouseLeave={() => setChartHovered(false)}>
+        <div
+          ref={containerRef}
+          style={{ flex: 1, minWidth: 0, position: "relative", cursor: "crosshair" }}
+          onMouseEnter={() => setChartHovered(true)}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => { setChartHovered(false); setHoverIdx(null) }}
+        >
           <svg viewBox={`0 0 ${RCW} ${RCH}`} width="100%" height="352" preserveAspectRatio="none" style={{ display: "block" }}>
             <defs>
               <linearGradient id="rewardsSolid" x1="0" y1="0" x2="0" y2={RCH} gradientUnits="userSpaceOnUse">
@@ -1039,12 +1097,25 @@ function RewardsChart({
             ) : (
               <path d={isRsr ? rsrPath(filteredRsrData) : rewardsSolidPath(filteredData)} fill="url(#rewardsSolid)" />
             )}
+            {hp && hpSvgX !== null && (
+              <line x1={hpSvgX} y1={0} x2={hpSvgX} y2={RCH} stroke="#bbb" strokeWidth={0.8} />
+            )}
+            {!isRsr && hpRd && hpSvgX !== null && (
+              <>
+                <circle cx={hpSvgX} cy={toRY(hpRd.votelock)} r={3.5} fill="#6abcaa" stroke="white" strokeWidth={1.5} />
+                <circle cx={hpSvgX} cy={toRY(hpRd.staking + hpRd.votelock)} r={3.5} fill="#7b8fcc" stroke="white" strokeWidth={1.5} />
+              </>
+            )}
+            {isRsr && hpSvgX !== null && hoverIdx !== null && hoverIdx < filteredRsrData.length && (
+              <circle cx={hpSvgX} cy={toRSRY(filteredRsrData[hoverIdx].total)} r={3.5} fill="#7b8fcc" stroke="white" strokeWidth={1.5} />
+            )}
           </svg>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
             {xLabels.map((l) => (
               <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#999" }}>{l}</span>
             ))}
           </div>
+          {tooltip}
         </div>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: 352, flexShrink: 0 }}>
           {yLabels.map((l) => (
@@ -1052,16 +1123,6 @@ function RewardsChart({
           ))}
         </div>
       </div>
-      {!isRsr && (
-        <div style={{ display: "flex", alignItems: "center", gap: 16, paddingLeft: 4 }}>
-          {[{ label: "Staking rewards", color: "#7b8fcc" }, { label: "Vote-lock rewards", color: "#6abcaa" }].map(({ label, color }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
-              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
