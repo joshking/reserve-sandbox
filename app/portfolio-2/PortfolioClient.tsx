@@ -828,12 +828,21 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
   )
 }
 
+function VlRSRIcon() {
+  return (
+    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0151af", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1 }}>#</span>
+    </div>
+  )
+}
+
 function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
   const rows = [
-    { dtf: "CMC20", letter: "C", color: "#2d57f1", govToken: "vlRSR-CMCIndex", votePwr: "4.5", badge: null as null | "Delegated" | "Delegator", voteWeight: "27.1%", locker: "0x4880...c3a8", delegate: "0x4880...c3a8" },
-    { dtf: "CLX", letter: "C", color: "#059669", govToken: "vlRSR-CLX", votePwr: "1.1", badge: "Delegated" as const, voteWeight: "15.85%", locker: "0x4880...c3a8", delegate: "0x4880...c3a8" },
-    { dtf: "CLX", letter: "C", color: "#7c3aed", govToken: "vlRSR-CLX", votePwr: "3", badge: null as null | "Delegated" | "Delegator", voteWeight: "12.56%", locker: "0x4880...c3a8", delegate: "0x4880...c3a8" },
-    { dtf: "CF Large Cap Index", letter: "C", color: "#1a4fc4", govToken: "vlRSR-LCAP", votePwr: "1.1", badge: "Delegator" as const, voteWeight: "12.56%", locker: "0x4480...c3a8", delegate: "0x4480...c3a8" },
+    { dtf: "LCAP", govToken: "vlRSR-LCAP", votePwr: "15,000.00", voteWeight: "0.02%", locker: "0x45A9...82FA", delegate: "0x6905...C8dE" },
+    { dtf: "BGCI", govToken: "vlRSR-BGCI", votePwr: "8,400.00", voteWeight: "0.02%", locker: "0xa276...8fb4", delegate: "0x6905...C8dE" },
+    { dtf: "CLX", govToken: "vlRSR-CLX", votePwr: "5,000.00", voteWeight: "0.03%", locker: "0x25De...666B", delegate: "0x6905...C8dE" },
+    { dtf: "BEER", govToken: "vlRSR-BEER", votePwr: "1,005.00", voteWeight: "100.00%", locker: "0x9c10...92F0", delegate: "0x6905...C8dE" },
+    { dtf: "FORALL", govToken: "vlRSR-FORALL", votePwr: "55.00", voteWeight: "100.00%", locker: "0x1bBf...3180", delegate: "0x6905...C8dE" },
   ]
   return (
     <div style={{ padding: mobile ? "0 20px" : "0 40px", marginBottom: 32 }}>
@@ -842,18 +851,12 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
         {mobile ? (
           rows.map((row, i) => (
             <div key={`${row.dtf}-${i}`} style={{ padding: "16px 24px", borderBottom: i < rows.length - 1 ? "1px solid #e5e5e5" : "none" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: row.badge ? 8 : 12 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <TokenBubble letter={row.letter} color={row.color} size={40} />
+                  <VlRSRIcon />
                   <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
                 </div>
-                <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}><MoreVertical size={20} color="#666" /></button>
               </div>
-              {row.badge && (
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: row.badge === "Delegated" ? "#008632" : "#0151af", background: row.badge === "Delegated" ? "rgba(35,196,95,0.15)" : "rgba(1,81,175,0.15)", borderRadius: 42, padding: "4px 10px", display: "inline-flex", alignItems: "center" }}>{row.badge}</span>
-                </div>
-              )}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Governance token <span style={{ color: "#0151af" }}>{row.govToken}</span></span>
                 <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Weight <span style={{ fontWeight: 500 }}>{row.voteWeight}</span></span>
@@ -864,36 +867,34 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
           <>
             <THead>
               <THCell flex={1}>DTF Governed</THCell>
-              <THCell width={170}>Governance Token</THCell>
-              {!tablet && <THCell width={130}>Vote Power</THCell>}
+              <THCell width={200}>Governance Token</THCell>
+              {!tablet && <THCell width={140}>Vote Power</THCell>}
               <THCell width={120}>Vote Weight</THCell>
-              {!tablet && <THCell width={160}>Vote-locker Address</THCell>}
-              {!tablet && <THCell width={160}>Delegate Address</THCell>}
-              <THCell width={130}>Actions</THCell>
+              {!tablet && <THCell width={200}>Vote-locker Address</THCell>}
+              {!tablet && <THCell width={200}>Delegate Address</THCell>}
             </THead>
             {rows.map((row, i) => (
               <TRow key={`${row.dtf}-${i}`} bordered={i < rows.length - 1}>
                 <Cell flex={1}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                    <TokenBubble letter={row.letter} color={row.color} size={28} />
-                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0151af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.dtf}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0151af" }}>{row.dtf}</span>
+                </Cell>
+                <Cell width={200}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <VlRSRIcon />
+                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.govToken}</span>
                   </div>
                 </Cell>
-                <Cell width={170}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>{row.govToken}</span></Cell>
-                {!tablet && (
-                  <Cell width={130}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span>
-                      {row.badge && <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: row.badge === "Delegated" ? "#008632" : "#0151af", background: row.badge === "Delegated" ? "rgba(35,196,95,0.15)" : "rgba(1,81,175,0.15)", borderRadius: 42, height: 20, padding: "0 8px", display: "inline-flex", alignItems: "center" }}>{row.badge}</span>}
-                    </div>
-                  </Cell>
-                )}
+                {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span></Cell>}
                 <Cell width={120}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
-                {!tablet && <Cell width={160}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.locker}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
-                {!tablet && <Cell width={160}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af" }}>{row.delegate}</span><ArrowUpRight size={14} color="#0151af" /></div></Cell>}
-                <Cell width={130}><button style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex" }}><MoreVertical size={20} color="#666" /></button></Cell>
+                {!tablet && <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.locker}</span><Copy size={14} color="#666" /></div></Cell>}
+                {!tablet && <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.delegate}</span><Copy size={14} color="#666" /></div></Cell>}
               </TRow>
             ))}
+            <div style={{ borderTop: "1px solid #e5e5e5", padding: "14px 24px", display: "flex", justifyContent: "center" }}>
+              <button style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: FONT, fontSize: 14, fontWeight: 500, color: "#0151af" }}>
+                Show all (8) <ChevronDown size={16} color="#0151af" />
+              </button>
+            </div>
           </>
         )}
       </TableCard>
@@ -954,8 +955,6 @@ function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: 
         </div>
       </div>
       <DTFPositionsSection tablet={tablet} mobile={mobile} />
-      <StakedPositionsSection tablet={tablet} mobile={mobile} />
-      <VoteLockedSection tablet={tablet} mobile={mobile} />
       <ActiveProposalsSection tablet={tablet} mobile={mobile} />
       <VotingPowerSection tablet={tablet} mobile={mobile} />
       <RSRSection tablet={tablet} mobile={mobile} />
@@ -1343,7 +1342,7 @@ function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
           totals={totals}
           currency={currency}
         />
-        <div style={{ width: mobile ? "100%" : 284, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ width: mobile ? "100%" : 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
           <CustomizeReportPanel
             fromDate={fromDate}
             toDate={toDate}
@@ -1356,6 +1355,8 @@ function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
         </div>
       </div>
       <AvailableRewardsSection mobile={mobile} />
+      <StakedPositionsSection tablet={tablet} mobile={mobile} />
+      <VoteLockedSection tablet={tablet} mobile={mobile} />
       <StakingActivitySection mobile={mobile} />
     </>
   )
