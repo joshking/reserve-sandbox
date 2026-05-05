@@ -189,7 +189,8 @@ export default function Navbar() {
             <NavLink href="/"           icon={<Binoculars    size={16} />} label="Discover DTFs"      active={pathname === "/"} />
             <NavLink href="/earn"       icon={<LandmarkIcon  size={16} />} label="Participage and Earn" active={pathname.startsWith("/earn")} />
             <NavLink href="/create"     icon={<BadgePlus     size={16} />} label="Create New DTF"     active={pathname.startsWith("/create")} />
-            <NavLink href="/portfolio"  icon={<Wallet        size={16} />} label="Portfolio"           active={pathname.startsWith("/portfolio")} />
+            <NavLink href="/portfolio"   icon={<Wallet        size={16} />} label="Portfolio"           active={pathname === "/portfolio"} />
+            <NavLink href="/portfolio-2" icon={<Wallet        size={16} />} label="Portfolio 2"         active={pathname.startsWith("/portfolio-2")} />
 
             {/* More dropdown */}
             <div
