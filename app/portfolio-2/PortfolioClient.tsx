@@ -349,37 +349,34 @@ function StatusPill({ label, color }: { label: string; color: string }) {
 
 type Section = "overview" | "rewards" | "transactions"
 
-function PortfolioSidebar({ section, onSection }: { section: Section; onSection: (s: Section) => void }) {
+function PortfolioTabs({ section, onSection }: { section: Section; onSection: (s: Section) => void }) {
   const items: { key: Section; Icon: React.ElementType; label: string }[] = [
-    { key: "overview",     Icon: ChartLine,  label: "Overview"     },
-    { key: "rewards",      Icon: Gift,       label: "Rewards"      },
+    { key: "overview",     Icon: ChartLine,   label: "Overview"     },
+    { key: "rewards",      Icon: Gift,        label: "Rewards"      },
     { key: "transactions", Icon: ArrowUpDown, label: "Transactions" },
   ]
   return (
-    <div style={{ width: 200, flexShrink: 0, padding: "32px 24px" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {items.map(({ key, Icon, label }) => {
-          const active = section === key
-          return (
-            <button
-              key={key}
-              onClick={() => onSection(key)}
-              style={{
-                display: "flex", alignItems: "center", gap: 8,
-                background: "none", border: "none", cursor: "pointer", padding: 0,
-                fontFamily: FONT, fontSize: 16, fontWeight: 300,
-                color: active ? "#0151af" : "#0a0d10",
-                width: "100%", textAlign: "left",
-              }}
-            >
-              <div style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", flexShrink: 0 }}>
-                <Icon size={16} color={active ? "#0151af" : "#0a0d10"} />
-              </div>
-              {label}
-            </button>
-          )
-        })}
-      </div>
+    <div style={{ display: "flex", gap: 4, padding: "24px 32px 0" }}>
+      {items.map(({ key, Icon, label }) => {
+        const active = section === key
+        return (
+          <button
+            key={key}
+            onClick={() => onSection(key)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "none", border: "none", borderBottom: active ? "2px solid #0151af" : "2px solid transparent",
+              cursor: "pointer", padding: "10px 16px",
+              fontFamily: FONT, fontSize: 15, fontWeight: active ? 500 : 300,
+              color: active ? "#0151af" : "#666",
+              transition: "color 0.15s",
+            }}
+          >
+            <Icon size={15} color={active ? "#0151af" : "#666"} />
+            {label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -1483,9 +1480,9 @@ export default function PortfolioClient() {
 
   return (
     <div style={{ background: "#fefcfb", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "flex-start" }}>
-        <PortfolioSidebar section={section} onSection={setSection} />
-        <div style={{ flex: 1, minWidth: 0, paddingBottom: 80 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <PortfolioTabs section={section} onSection={setSection} />
+        <div style={{ paddingBottom: 80 }}>
           {section === "overview"     && <OverviewView tablet={tablet} mobile={mobile} onRewards={() => setSection("rewards")} />}
           {section === "rewards"      && <RewardsView tablet={tablet} mobile={mobile} />}
           {section === "transactions" && <TransactionsView mobile={mobile} />}
