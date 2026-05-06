@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -190,7 +190,7 @@ export default function Navbar() {
             <NavLink href="/earn"       icon={<LandmarkIcon  size={16} />} label="Participage and Earn" active={pathname.startsWith("/earn")} />
             <NavLink href="/create"     icon={<BadgePlus     size={16} />} label="Create New DTF"     active={pathname.startsWith("/create")} />
             <NavLink href="/portfolio"   icon={<Wallet        size={16} />} label="Portfolio"           active={pathname.startsWith("/portfolio") && !pathname.startsWith("/portfolio-2")} />
-            <NavLink href="/portfolio-2" icon={<Wallet        size={16} />} label="Portfolio 2"         active={pathname.startsWith("/portfolio-2")} />
+            <Portfolio2Dropdown active={pathname.startsWith("/portfolio-2")} />
 
             {/* More dropdown */}
             <div
@@ -276,6 +276,73 @@ export default function Navbar() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
+function Portfolio2Dropdown({ active }: { active: boolean }) {
+  const [open, setOpen] = useState(false)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const items = [
+    { label: "Holdings",     href: "/portfolio-2" },
+    { label: "Rewards",      href: "/portfolio-2?section=rewards" },
+    { label: "Transactions", href: "/portfolio-2?section=transactions" },
+  ]
+
+  function open_() {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+    setOpen(true)
+  }
+  function close_() {
+    closeTimer.current = setTimeout(() => setOpen(false), 120)
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      <Link
+        href="/portfolio-2"
+        onMouseEnter={open_}
+        onMouseLeave={close_}
+        style={{
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "8px", borderRadius: "6px",
+          color: active ? "#0151af" : "rgba(0,0,0,0.8)",
+          fontSize: "16px", fontFamily: FONT, fontWeight: 300,
+          textDecoration: "none",
+        }}>
+        <Wallet size={16} />
+        Portfolio 2
+        <ChevronDown size={13} strokeWidth={2} />
+      </Link>
+      {open && (
+        <div
+          onMouseEnter={open_}
+          onMouseLeave={close_}
+          style={{
+            position: "absolute", top: "100%", left: 0, zIndex: 100,
+            paddingTop: 4,
+          }}
+        >
+          <div style={{
+            background: "white", borderRadius: 12, padding: 6,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.10)", minWidth: 160,
+            display: "flex", flexDirection: "column", gap: 2,
+          }}>
+            {items.map(({ label, href }) => (
+              <Link key={label} href={href} style={{
+                display: "block", padding: "8px 12px", borderRadius: 8,
+                fontFamily: FONT, fontSize: 15, fontWeight: 300,
+                color: "#0a0d10", textDecoration: "none",
+              }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f5f5f5")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function NavLink({ href, icon, label, active }: {
   href: string; icon: React.ReactNode; label: string; active: boolean

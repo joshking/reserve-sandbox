@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowUpRight, ArrowRight, TrendingUp, TrendingDown,
@@ -435,11 +436,6 @@ function PortfolioChart() {
         <div style={{ paddingLeft: 24, display: "flex", flexDirection: "column", gap: 8 }}>
           <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: "#666", letterSpacing: 1, textTransform: "uppercase" }}>Total Holdings</span>
           <span style={{ fontFamily: FONT, fontSize: 46, fontWeight: 500, color: "#0151af", lineHeight: "50px" }}>$31,373.24</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <TrendingUp size={18} color="#0151af" />
-            <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 300, color: "#0151af" }}>6.8% (+$362.45)</span>
-            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#999" }}>7D</span>
-          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", background: "#f2f2f2", borderRadius: 24, padding: 2 }}>
           {tabs.map((t) => {
@@ -948,7 +944,15 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: boolean; onRewards: () => void }) {
   return (
     <>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? 20 : 40, alignItems: "flex-start", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
+      <div style={{ padding: mobile ? "20px 20px 0" : "32px 40px 0" }}>
+        <div style={{ paddingLeft: 24, marginBottom: 24 }}>
+          <div style={{ marginBottom: 8 }}>
+            <span style={{ fontFamily: FONT, fontSize: 24, fontWeight: 700, color: "#0151af" }}>Holdings</span>
+          </div>
+          <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>An overview of your portfolio value, positions, and pending rewards</p>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? 20 : 40, alignItems: "flex-start", padding: mobile ? "0 20px 32px" : "0 40px 48px" }}>
         <PortfolioChart />
         <div style={{ width: mobile ? "100%" : 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 16 }}>
           <BreakdownCard />
@@ -1054,10 +1058,6 @@ function RewardsChart({
             {isRsr ? "Total RSR Rewards" : "Total USD Rewards"}
           </span>
           <span style={{ fontFamily: FONT, fontSize: 46, fontWeight: 500, color: "#0151af", lineHeight: "50px" }}>{totals.total}</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {totals.positive ? <TrendingUp size={18} color="#0151af" /> : <TrendingDown size={18} color="#ef4345" />}
-            <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 300, color: totals.positive ? "#0151af" : "#ef4345" }}>{totals.pct} ({totals.change})</span>
-          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", background: "#f2f2f2", borderRadius: 24, padding: 2 }}>
           {tabs.map(({ label, key }) => {
@@ -1394,7 +1394,15 @@ function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 40, alignItems: "flex-start", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
+      <div style={{ padding: mobile ? "20px 20px 0" : "32px 40px 0" }}>
+        <div style={{ paddingLeft: 24, marginBottom: 24 }}>
+          <div style={{ marginBottom: 8 }}>
+            <span style={{ fontFamily: FONT, fontSize: 24, fontWeight: 700, color: "#0151af" }}>Rewards</span>
+          </div>
+          <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Track and customize your staking and vote-lock rewards over time</p>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 40, alignItems: "flex-start", padding: mobile ? "0 20px 32px" : "0 40px 48px" }}>
         <RewardsChart
           preset={preset}
           onPreset={handlePreset}
@@ -1465,9 +1473,8 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
     <div style={{ padding: mobile ? "20px 20px 0" : "32px 40px 0" }}>
       {/* Heading */}
       <div style={{ paddingLeft: 24, marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <ArrowDownUp size={20} color="#0151af" />
-          <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>Transactions</span>
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ fontFamily: FONT, fontSize: 24, fontWeight: 700, color: "#0151af" }}>Transactions</span>
         </div>
         <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Your history of recent on-chain activity</p>
       </div>
@@ -1537,15 +1544,17 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function PortfolioClient() {
-  const [section, setSection] = useState<Section>("overview")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const raw = searchParams.get("section")
+  const section: Section = raw === "rewards" || raw === "transactions" ? raw : "overview"
   const { tablet, mobile } = useBreakpoint()
 
   return (
     <div style={{ background: "#fefcfb", minHeight: "100vh" }}>
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-        <PortfolioTabs section={section} onSection={setSection} />
         <div style={{ paddingBottom: 80 }}>
-          {section === "overview"     && <OverviewView tablet={tablet} mobile={mobile} onRewards={() => setSection("rewards")} />}
+          {section === "overview"     && <OverviewView tablet={tablet} mobile={mobile} onRewards={() => router.push("/portfolio-2?section=rewards")} />}
           {section === "rewards"      && <RewardsView tablet={tablet} mobile={mobile} />}
           {section === "transactions" && <TransactionsView mobile={mobile} />}
         </div>
