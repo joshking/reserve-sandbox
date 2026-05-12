@@ -1011,10 +1011,10 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: boolean; onRewards: () => void }) {
   return (
     <>
-      <div style={{ padding: mobile ? "24px 20px 0" : "32px 40px 0" }}>
+      <div style={{ padding: mobile ? "24px 20px 32px" : "32px 40px 40px" }}>
         <PortfolioChart />
       </div>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, alignItems: mobile ? "stretch" : "center", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, alignItems: mobile ? "stretch" : "center", padding: mobile ? "16px 20px 32px" : "16px 40px 48px" }}>
         <div style={{ flex: 1, minWidth: 0 }}><BreakdownCard /></div>
         <div style={{ flex: 1, minWidth: 0 }}><RewardsCard onRewards={onRewards} /></div>
       </div>
