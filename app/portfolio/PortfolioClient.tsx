@@ -36,20 +36,17 @@ const OV_MAX = 38000
 type OvPoint = { label: string; x: number; val: number }
 const OV_DATA: OvPoint[] = [
   { label: "JAN 2025", x: 0,   val: 1100  },
-  { label: "",         x: 78,  val: 1600  },
-  { label: "",         x: 156, val: 2500  },
-  { label: "APR 2025", x: 281, val: 5200  },
-  { label: "",         x: 375, val: 9000  },
-  { label: "",         x: 430, val: 12500 },
-  { label: "AUG 2025", x: 520, val: 16800 },
-  { label: "",         x: 578, val: 22000 },
-  { label: "OCT2025",  x: 625, val: 27500 },
-  { label: "",         x: 688, val: 31000 },
-  { label: "",         x: 750, val: 33500 },
-  { label: "",         x: 800, val: 34800 },
-  { label: "DEC 2025", x: 844, val: 35600 },
-  { label: "",         x: 890, val: 36100 },
-  { label: "",         x: 937, val: 35800 },
+  { label: "FEB 2025", x: 85,  val: 1800  },
+  { label: "MAR 2025", x: 170, val: 2800  },
+  { label: "APR 2025", x: 255, val: 5200  },
+  { label: "MAY 2025", x: 341, val: 8200  },
+  { label: "JUN 2025", x: 426, val: 10500 },
+  { label: "JUL 2025", x: 511, val: 14500 },
+  { label: "AUG 2025", x: 596, val: 19000 },
+  { label: "SEP 2025", x: 681, val: 24000 },
+  { label: "OCT 2025", x: 766, val: 29000 },
+  { label: "NOV 2025", x: 851, val: 33000 },
+  { label: "DEC 2025", x: 937, val: 35800 },
 ]
 
 function toOvY(val: number) { return OV_CH - (val / OV_MAX) * OV_CH }
@@ -256,7 +253,7 @@ function Cell({ children, width, flex }: { children: React.ReactNode; width?: nu
 function THCell({ children, width, flex }: { children: React.ReactNode; width?: number; flex?: number }) {
   return (
     <div style={{ width: flex ? undefined : width, flex: flex ?? undefined, flexShrink: 0, padding: "0 24px", display: "flex", alignItems: "center" }}>
-      <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{children}</span>
+      <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666" }}>{children}</span>
     </div>
   )
 }
@@ -272,7 +269,7 @@ function TokenBubble({ letter, color, size = 32 }: { letter: string; color: stri
 function ValuePair({ main, sub, mainWeight = 700, mainColor = "#0a0d10" }: { main: string; sub: string; mainWeight?: number; mainColor?: string }) {
   return (
     <div>
-      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: mainWeight, color: mainColor, margin: "0 0 3px 0" }}>{main}</p>
+      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: mainWeight, color: mainColor, margin: "0 0 3px 0" }}>{main}</p>
       <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>{sub}</p>
     </div>
   )
@@ -284,7 +281,7 @@ function PerfCell({ pct, abs, positive }: { pct: string; abs: string; positive: 
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 2, marginBottom: 3 }}>
         {positive ? <TrendingUp size={14} color={color} /> : <TrendingDown size={14} color={color} />}
-        <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color }}>{pct}</span>
+        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color }}>{pct}</span>
       </div>
       <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999" }}>{abs}</span>
     </div>
@@ -328,19 +325,29 @@ function DateRangePill({ label }: { label: string }) {
 
 // ── PieDonut ──────────────────────────────────────────────────────────────────
 
-function PieDonut() {
-  const segs = [
-    { val: 28217.98, color: "#0b1d66" },
-    { val: 1217.98,  color: "#1040b8" },
-    { val: 989.30,   color: "#2c6cd4" },
-    { val: 763.21,   color: "#6aa4e4" },
-    { val: 1004.32,  color: "#b0d0f4" },
-  ]
-  const total = segs.reduce((s, r) => s + r.val, 0)
+const PIE_SEGS = [
+  { val: 28217.98, label: "Index DTFs",  value: "$28,217.98", baseColor: "#0151af", revealColor: "#22c55e" },
+  { val: 1217.98,  label: "Yield DTFs",  value: "$1,217.98",  baseColor: "#0e6ad6", revealColor: "#f97316" },
+  { val: 989.30,   label: "Vote-locked", value: "$989.30",    baseColor: "#2684f3", revealColor: "#a855f7" },
+  { val: 763.21,   label: "Staked RSR",  value: "$763.21",    baseColor: "#5ea8ff", revealColor: "#eab308" },
+  { val: 1004.32,  label: "RSR",         value: "$1,004.32",  baseColor: "#a4ceff", revealColor: "#ef4444" },
+]
+
+function PieDonut({ hoveredIdx, onHover }: {
+  hoveredIdx: number | null
+  onHover: (i: number | null) => void
+}) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  const total = PIE_SEGS.reduce((s, r) => s + r.val, 0)
   const cx = 72, cy = 72, R = 64, ri = 40
   let angle = -Math.PI / 2
 
-  const paths = segs.map((seg) => {
+  const paths = PIE_SEGS.map((seg, i) => {
     const sweep = (seg.val / total) * 2 * Math.PI
     const sa = angle; angle += sweep; const ea = angle
     const cos = (a: number, r: number) => cx + r * Math.cos(a)
@@ -348,13 +355,41 @@ function PieDonut() {
     const large = sweep > Math.PI ? 1 : 0
     return {
       d: `M${cos(sa,R)},${sin(sa,R)} A${R},${R} 0 ${large} 1 ${cos(ea,R)},${sin(ea,R)} L${cos(ea,ri)},${sin(ea,ri)} A${ri},${ri} 0 ${large} 0 ${cos(sa,ri)},${sin(sa,ri)} Z`,
-      color: seg.color,
+      i,
     }
   })
 
   return (
-    <svg width={144} height={144} viewBox="0 0 144 144" style={{ flexShrink: 0 }}>
-      {paths.map((p, i) => <path key={i} d={p.d} fill={p.color} />)}
+    <svg
+      width={190}
+      height={190}
+      viewBox="0 0 144 144"
+      style={{
+        flexShrink: 0,
+        display: "block",
+        opacity: mounted ? 1 : 0,
+        transition: "opacity 0.6s ease",
+      }}
+    >
+      {paths.map(({ d, i }) => {
+        const seg = PIE_SEGS[i]
+        const isHovered = hoveredIdx === i
+        const isDimmed = hoveredIdx !== null && !isHovered
+        return (
+          <path
+            key={i}
+            d={d}
+            fill={isHovered ? seg.revealColor : seg.baseColor}
+            style={{
+              opacity: isDimmed ? 0.18 : 1,
+              transition: "fill 0.22s ease, opacity 0.18s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={() => onHover(i)}
+            onMouseLeave={() => onHover(null)}
+          />
+        )
+      })}
     </svg>
   )
 }
@@ -415,7 +450,6 @@ function PortfolioChart() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const yLabels = ["$36K", "$32K", "$28K", "$24K", "$20K", "$16K", "$12K", "$8K", "$4K", "0.0"]
-  const xLabelPts = OV_DATA.filter(d => d.label)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect()
@@ -434,7 +468,7 @@ function PortfolioChart() {
 
   const tooltip = hp ? (
     <div style={{ position: "absolute", top: 16, left: hpPct > 60 ? undefined : `calc(${hpPct}% + 14px)`, right: hpPct > 60 ? `calc(${100 - hpPct}% + 14px)` : undefined, background: "white", borderRadius: 10, padding: "10px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", zIndex: 10, pointerEvents: "none" }}>
-      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#666", margin: "0 0 4px" }}>{hp.label || (OV_DATA.find(d => d.label && d.x <= hp.x)?.label ?? "")}</p>
+      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#666", margin: "0 0 4px" }}>{hp.label}</p>
       <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af", margin: 0 }}>${(hp.val / 1000).toFixed(1)}K</p>
     </div>
   ) : null
@@ -470,9 +504,9 @@ function PortfolioChart() {
             {hp && <line x1={hp.x} y1={0} x2={hp.x} y2={OV_CH} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />}
             {hp && <circle cx={hp.x} cy={toOvY(hp.val)} r={4} fill="white" stroke="#0151af" strokeWidth={2} />}
           </svg>
-          <div style={{ position: "relative", height: 20, marginTop: 6 }}>
-            {xLabelPts.map((d) => (
-              <span key={d.label} style={{ position: "absolute", fontFamily: FONT, fontSize: 11, color: "#999", left: `${(d.x / OV_CW) * 100}%`, transform: "translateX(-50%)", whiteSpace: "nowrap" }}>{d.label}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            {OV_DATA.map((d) => (
+              <span key={d.label} style={{ fontFamily: FONT, fontSize: 11, color: "#999", whiteSpace: "nowrap" }}>{d.label}</span>
             ))}
           </div>
           {tooltip}
@@ -490,30 +524,42 @@ function PortfolioChart() {
 // ── Overview sidebar cards ────────────────────────────────────────────────────
 
 function BreakdownCard() {
-  const PIE_ROWS = [
-    { label: "Index DTFs",  value: "$28,217.98", color: "#0b1d66" },
-    { label: "Yield DTFs",  value: "$1,217.98",  color: "#1040b8" },
-    { label: "Vote-locked", value: "$989.30",    color: "#2c6cd4" },
-    { label: "Staked RSR",  value: "$763.21",    color: "#6aa4e4" },
-    { label: "RSR",         value: "$1,004.32",  color: "#b0d0f4" },
-  ]
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+
   return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px" }}>
-      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
-      <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: "0 0 16px" }}>Value by asset type</p>
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-          {PIE_ROWS.map(({ label, value, color }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
-              <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>{label}</span>
-                <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10" }}>{value}</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: 0 }}>Portfolio Breakdown</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 44 }}>
+        <PieDonut hoveredIdx={hoveredIdx} onHover={setHoveredIdx} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+          {PIE_SEGS.map((seg, i) => {
+            const isHovered = hoveredIdx === i
+            const isDimmed = hoveredIdx !== null && !isHovered
+            return (
+              <div
+                key={seg.label}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12, minWidth: 200,
+                  opacity: isDimmed ? 0.28 : 1,
+                  transition: "opacity 0.18s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+              >
+                <div style={{
+                  width: 16, height: 16,
+                  background: isHovered ? seg.revealColor : seg.baseColor,
+                  borderRadius: 4,
+                  flexShrink: 0,
+                  transition: "background 0.22s ease",
+                }} />
+                <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10", flex: 1 }}>{seg.label}</span>
+                <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{seg.value}</span>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
-        <PieDonut />
       </div>
     </div>
   )
@@ -521,20 +567,24 @@ function BreakdownCard() {
 
 function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
-      <div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Rewards Available</p>
-        <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: 0 }}>Participation rewards available across all chains</p>
+    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: 0 }}>Pending Rewards</p>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0, lineHeight: "18px" }}>
+          You have $43.23 of rewards that can be claimed. These rewards are earned by governing Index DTFs. Rewards earned from staking RSR on Yield DTFs does not require any action.
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <Link href="#" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0151af", textDecoration: "none" }}>
+            Learn more about learning APY rewards
+          </Link>
+          <ArrowUpRight size={16} color="#0151af" />
+        </div>
       </div>
-      <span style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: "#0151af" }}>$43.23</span>
-      <button onClick={onRewards} style={{ background: "#0a0d10", color: "white", border: "none", borderRadius: 42, padding: "10px 20px", fontFamily: FONT, fontSize: 14, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6 }}>
-        Collect Rewards <ArrowRight size={14} />
-      </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Link href="#" style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0151af", textDecoration: "none" }}>
-          Learn more about earning APY
-        </Link>
-        <ArrowUpRight size={12} color="#0151af" />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: "#0151af" }}>$43.23</span>
+        <button onClick={onRewards} style={{ background: "#0151af", color: "white", border: "none", borderRadius: 24, padding: "12px 16px", fontFamily: FONT, fontSize: 12, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+          Collect Rewards <ArrowRight size={16} />
+        </button>
       </div>
     </div>
   )
@@ -562,7 +612,7 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
               <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                 <TokenBubble letter={row.letter} color={row.color} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0a0d10", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</p>
+                  <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</p>
                   <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>{row.ticker}</p>
                 </div>
               </div>
@@ -589,14 +639,14 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <TokenBubble letter={row.letter} color={row.color} />
                     <div>
-                      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10", margin: "0 0 2px" }}>{row.name}</p>
-                      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666", margin: 0 }}>{row.ticker}</p>
+                      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10", margin: "0 0 2px" }}>{row.name}</p>
+                      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>{row.ticker}</p>
                     </div>
                   </div>
                 </Cell>
                 <Cell width={190}><PerfCell pct={row.perf} abs={row.perfAbs} positive={row.perfPos} /></Cell>
-                {!tablet && <Cell width={155}><div><p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
-                {!tablet && <Cell width={155}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
+                {!tablet && <Cell width={155}><div><p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
+                {!tablet && <Cell width={155}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
                 {!tablet && <Cell width={155}><ValuePair main={row.mktCap} sub={row.mktCapSub} mainWeight={300} /></Cell>}
                 <Cell width={145}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
                 <Cell width={145}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
@@ -618,7 +668,7 @@ function StakedPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: b
           <div style={{ display: "flex", alignItems: "center", padding: "20px 24px", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
               <TokenBubble letter="E" color="#0151af" />
-              <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>eth+RSR</span>
+              <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>eth+RSR</span>
             </div>
             <div style={{ display: "flex", gap: 16, flexShrink: 0 }}>
               <ValuePair main="17.76K" sub="eth+RSR" mainWeight={300} />
@@ -640,11 +690,11 @@ function StakedPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: b
               <Cell flex={1}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <TokenBubble letter="E" color="#0151af" />
-                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>eth+RSR</span>
+                  <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>eth+RSR</span>
                 </div>
               </Cell>
-              {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>LCAP</span></Cell>}
-              {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>7.05%</span></Cell>}
+              {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666" }}>LCAP</span></Cell>}
+              {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666" }}>7.05%</span></Cell>}
               <Cell width={145}><ValuePair main="162.3K" sub="eth+RSR" mainWeight={300} /></Cell>
               <Cell width={145}><ValuePair main="$65.32" sub="USD" /></Cell>
               <Cell width={145}><ValuePair main="123.2K" sub="RSR" /></Cell>
@@ -678,7 +728,7 @@ function VoteLockedSection({ tablet, mobile }: { tablet: boolean; mobile: boolea
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <TokenBubble letter={row.letter} color={row.color} />
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span>
+                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span>
                     {row.lockIcon}
                   </div>
                 </div>
@@ -716,7 +766,7 @@ function VoteLockedSection({ tablet, mobile }: { tablet: boolean; mobile: boolea
                     <TokenBubble letter={row.letter} color={row.color} />
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span>
+                        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span>
                         {row.lockIcon}
                       </div>
                       {row.unlockStatus && (
@@ -729,8 +779,8 @@ function VoteLockedSection({ tablet, mobile }: { tablet: boolean; mobile: boolea
                     </div>
                   </div>
                 </Cell>
-                {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.governs}</span></Cell>}
-                {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#666" }}>{row.apy}</span></Cell>}
+                {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666" }}>{row.governs}</span></Cell>}
+                {!tablet && <Cell width={90}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666" }}>{row.apy}</span></Cell>}
                 <Cell width={145}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
                 <Cell width={145}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
                 <Cell width={175}>
@@ -758,11 +808,11 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <TokenBubble letter={row.letter} color={row.color} size={40} />
-          <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span>
+          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span>
         </div>
         <StatusPill label={row.status.label} color={row.status.color} />
       </div>
-      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 8px", letterSpacing: -0.4 }}>{row.title}</p>
+      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af", margin: "0 0 8px", letterSpacing: -0.4 }}>{row.title}</p>
       {row.detail.type === "votes" ? (
         <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 12px" }}>
           <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Quorum?: <span style={{ color: (row.detail as { quorum: boolean }).quorum ? "#56b891" : "#ef4345" }}>{(row.detail as { quorum: boolean }).quorum ? "Yes" : "No"}</span></span>
@@ -789,36 +839,36 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
             </THead>
             {rows.map((row, i) => (
               <TRow key={row.dtf + i} bordered={i < rows.length - 1}>
-                <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><TokenBubble letter={row.letter} color={row.color} size={40} /><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span></div></Cell>
+                <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><TokenBubble letter={row.letter} color={row.color} size={40} /><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{row.dtf}</span></div></Cell>
                 <Cell flex={1}>
                   <div style={{ padding: "16px 0", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", letterSpacing: -0.64 }}>{row.title}</span>
+                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af", letterSpacing: -0.64 }}>{row.title}</span>
                     {row.detail.type === "votes" ? (
                       <>
                         <div style={{ position: "relative", height: 12, background: "#d9d9d9", borderRadius: 11, width: "100%", maxWidth: 330 }}>
                           <div style={{ position: "absolute", top: 0, left: 0, height: 12, background: "#23c45f", borderRadius: 11, width: `${(row.detail as { forPct: number }).forPct}%` }} />
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                          <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>Quorum?: <span style={{ color: (row.detail as { quorum: boolean }).quorum ? "#56b891" : "#ef4345" }}>{(row.detail as { quorum: boolean }).quorum ? "Yes" : "No"}</span></span>
+                          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Quorum?: <span style={{ color: (row.detail as { quorum: boolean }).quorum ? "#56b891" : "#ef4345" }}>{(row.detail as { quorum: boolean }).quorum ? "Yes" : "No"}</span></span>
                           <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#ccc" }} />
-                          <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>Votes: <span style={{ color: "#0151af" }}>{(row.detail as { votesFor: string }).votesFor}</span> / <span style={{ color: "#d05a67" }}>{(row.detail as { votesAgainst: string }).votesAgainst}</span> / {(row.detail as { votesAbstain: string }).votesAbstain}</span>
+                          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Votes: <span style={{ color: "#0151af" }}>{(row.detail as { votesFor: string }).votesFor}</span> / <span style={{ color: "#d05a67" }}>{(row.detail as { votesAgainst: string }).votesAgainst}</span> / {(row.detail as { votesAbstain: string }).votesAbstain}</span>
                         </div>
                       </>
                     ) : (
-                      <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{(row.detail as { text: string }).text}</span>
+                      <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{(row.detail as { text: string }).text}</span>
                     )}
                   </div>
                 </Cell>
                 <Cell width={190}>
                   <div style={{ padding: "24px 0" }}>
-                    <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: "0 0 2px", whiteSpace: "nowrap" }}>{row.date}</p>
+                    <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10", margin: "0 0 2px", whiteSpace: "nowrap" }}>{row.date}</p>
                     <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", whiteSpace: "nowrap" }}>By: {row.by}</span>
                       <ArrowUpRight size={14} color="#666" />
                     </div>
                   </div>
                 </Cell>
-                <Cell width={150}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.id}</span><Copy size={14} color="#666" style={{ cursor: "pointer" }} /></div></Cell>
+                <Cell width={150}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.id}</span><Copy size={14} color="#666" style={{ cursor: "pointer" }} /></div></Cell>
                 <Cell width={160}><StatusPill label={row.status.label} color={row.status.color} /></Cell>
               </TRow>
             ))}
@@ -853,7 +903,7 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
             <div key={`${row.dtf}-${i}`} style={{ padding: "16px 24px", borderBottom: i < rows.length - 1 ? "1px solid #e5e5e5" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
                   <RoleBadge role={row.role} />
                 </div>
               </div>
@@ -877,13 +927,13 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
             {rows.map((row, i) => (
               <TRow key={`${row.dtf}-${i}`} bordered={i < rows.length - 1}>
                 <Cell flex={1}>
-                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
                 </Cell>
                 <Cell width={200}>
                   <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.govToken}</span>
                 </Cell>
-                {!tablet && <Cell width={130}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span></Cell>}
-                <Cell width={110}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
+                {!tablet && <Cell width={130}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span></Cell>}
+                <Cell width={110}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
                 {!tablet && <Cell width={155}><RoleBadge role={row.role} /></Cell>}
                 {!tablet && <Cell width={165}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{row.locker}</span><ArrowUpRight size={13} color="#666" /></div></Cell>}
                 {!tablet && <Cell width={165}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{row.delegate}</span><ArrowUpRight size={13} color="#666" /></div></Cell>}
@@ -914,7 +964,7 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
         {mobile ? (
           <div style={{ padding: "16px 24px" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>{rsrIcon}<span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>RSR</span></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>{rsrIcon}<span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>RSR</span></div>
               <div style={{ textAlign: "right" }}><p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: "0 0 2px" }}>Balance</p><p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0a0d10", margin: 0 }}>$5,131.78</p></div>
             </div>
           </div>
@@ -928,12 +978,12 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
               <THCell width={150}>Value</THCell>
             </THead>
             <TRow bordered={false}>
-              <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: 8 }}>{rsrIcon}<span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>RSR</span></div></Cell>
+              <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: 8 }}>{rsrIcon}<span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>RSR</span></div></Cell>
               <Cell width={220}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Sparkline />
                   <div>
-                    <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#23c45f", margin: "0 0 2px" }}>+1.23%</p>
+                    <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#23c45f", margin: "0 0 2px" }}>+1.23%</p>
                     <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>+$2.14</p>
                   </div>
                 </div>
@@ -942,7 +992,7 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
                 <Cell width={180}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <TrendingUp size={14} color="#23c45f" />
-                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#23c45f" }}>7.19%</span>
+                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#23c45f" }}>7.19%</span>
                   </div>
                 </Cell>
               )}
@@ -964,7 +1014,7 @@ function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: 
       <div style={{ padding: mobile ? "24px 20px 0" : "32px 40px 0" }}>
         <PortfolioChart />
       </div>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, padding: mobile ? "16px 20px 32px" : "24px 40px 48px" }}>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, alignItems: mobile ? "stretch" : "center", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
         <div style={{ flex: 1, minWidth: 0 }}><BreakdownCard /></div>
         <div style={{ flex: 1, minWidth: 0 }}><RewardsCard onRewards={onRewards} /></div>
       </div>
@@ -1058,9 +1108,9 @@ function RewardsChart({
   const yLabels = isRsr ? rsrYLabels : usdYLabels
 
   const activeData = isRsr ? filteredRsrData : filteredData
-  const xLabels = activeData.length <= 4
+  const xLabels = activeData.length <= 6
     ? activeData.map(d => d.label)
-    : [0, Math.floor(activeData.length / 3), Math.floor(activeData.length * 2 / 3), activeData.length - 1]
+    : [0, Math.floor(activeData.length * 0.2), Math.floor(activeData.length * 0.4), Math.floor(activeData.length * 0.6), Math.floor(activeData.length * 0.8), activeData.length - 1]
         .map(i => activeData[i].label)
 
   const currencyLabel = isRsr ? "Total RSR Rewards" : "Total USD Rewards"
@@ -1224,7 +1274,7 @@ function AvailableRewardsSection({ mobile }: { mobile: boolean }) {
         </THead>
         {rows.map((row, i) => (
           <TRow key={row.token} bordered={i < rows.length - 1}>
-            <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: mobile ? 10 : 16 }}><TokenBubble letter={row.letter} color={row.color} /><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span></div></Cell>
+            <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: mobile ? 10 : 16 }}><TokenBubble letter={row.letter} color={row.color} /><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{row.token}</span></div></Cell>
             <Cell width={mobile ? 110 : 250}><ValuePair main={row.balance} sub={row.balanceSub} /></Cell>
             <Cell width={mobile ? 110 : 250}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
             <Cell width={mobile ? 80 : 150}><ClaimBtn /></Cell>
@@ -1253,7 +1303,7 @@ function StakingActivitySection({ mobile }: { mobile: boolean }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                 <TokenBubble letter={row.letter} color={row.color} />
                 <div>
-                  <p style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0151af", margin: "0 0 2px" }}>{row.dtf}</p>
+                  <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af", margin: "0 0 2px" }}>{row.dtf}</p>
                   <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: 0 }}>{row.date}</p>
                 </div>
               </div>
@@ -1275,22 +1325,22 @@ function StakingActivitySection({ mobile }: { mobile: boolean }) {
             </THead>
             {rows.map((row, i) => (
               <TRow key={i} bordered={i < rows.length - 1}>
-                <Cell width={180}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.date}</span></Cell>
+                <Cell width={180}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.date}</span></Cell>
                 <Cell width={280}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <TokenBubble letter={row.letter} color={row.color} />
-                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
+                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
                   </div>
                 </Cell>
-                <Cell width={150}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.type}</span></Cell>
+                <Cell width={150}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.type}</span></Cell>
                 <Cell width={180}>
                   <div>
-                    <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: "0 0 2px" }}>{row.asset}</p>
-                    <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>{row.assetAmt}</p>
+                    <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10", margin: "0 0 2px" }}>{row.asset}</p>
+                    <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999", margin: 0 }}>{row.assetAmt}</p>
                   </div>
                 </Cell>
-                <Cell width={190}><div style={{ display: "flex", gap: 4, alignItems: "baseline" }}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.valueWhen}</span><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999" }}>(USD)</span></div></Cell>
-                <Cell flex={1}><div style={{ display: "flex", gap: 4, alignItems: "baseline" }}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.valueNow}</span><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999" }}>(USD)</span></div></Cell>
+                <Cell width={190}><div style={{ display: "flex", gap: 4, alignItems: "baseline" }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.valueWhen}</span><span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999" }}>(USD)</span></div></Cell>
+                <Cell flex={1}><div style={{ display: "flex", gap: 4, alignItems: "baseline" }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.valueNow}</span><span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999" }}>(USD)</span></div></Cell>
               </TRow>
             ))}
           </>
@@ -1326,7 +1376,7 @@ function RewardsView({ mobile }: { tablet: boolean; mobile: boolean }) {
 
   return (
     <>
-      <div style={{ padding: mobile ? "24px 20px 0" : "32px 40px 0" }}>
+      <div style={{ padding: mobile ? "24px 20px 32px" : "32px 40px 40px" }}>
         <RewardsChart
           fromDate={fromDate} toDate={toDate}
           filteredData={filteredData}
@@ -1440,7 +1490,7 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
             </Cell>
             {!mobile && <Cell width={140}><TypePill type={row.type} /></Cell>}
             <Cell flex={1}>
-              <span style={{ fontFamily: FONT, fontSize: mobile ? 13 : 15, fontWeight: 300, color: "#0a0d10" }}>{mobile ? `${row.type} · ` : ""}{row.description}</span>
+              <span style={{ fontFamily: FONT, fontSize: mobile ? 13 : 14, fontWeight: 300, color: "#0a0d10" }}>{mobile ? `${row.type} · ` : ""}{row.description}</span>
             </Cell>
             {!mobile && (
               <Cell width={175}>
