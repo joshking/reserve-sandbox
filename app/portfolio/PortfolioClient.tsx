@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import {
   ArrowUpRight, ArrowRight, TrendingUp, TrendingDown,
-  Globe, Flower2, Scale, Landmark, MoreVertical,
+  Globe, Scale, Landmark, MoreVertical,
   ArrowDownUp, CheckSquare, Lock, Copy,
-  ChartLine, ChevronDown, Gift, FileDown, Search, ArrowUpDown,
+  ChartLine, ChevronDown, Gift, FileDown, Search, ArrowUpDown, Calendar, SlidersHorizontal,
 } from "lucide-react"
 
 const FONT = "'TWK Lausanne', system-ui, sans-serif"
@@ -27,62 +27,36 @@ function useBreakpoint() {
   return bp
 }
 
-// ── Overview chart data ───────────────────────────────────────────────────────
+// ── Overview chart (single-value) ────────────────────────────────────────────
 
-const CW = 937
-const CH = 352
-const CMAX = 1000
+const OV_CW = 937
+const OV_CH = 352
+const OV_MAX = 38000
 
-function toY(val: number) { return CH - (val / CMAX) * CH }
-
-type ChartPoint = {
-  label: string; x: number
-  rsr: number; vl: number; srsr: number; ydtf: number; idtf: number
-}
-
-const CHART_DATA: ChartPoint[] = [
-  { label: "5 Dec",  x: 0,   rsr: 378,    vl: 44,    srsr: 42,    ydtf: 20,    idtf: 34    },
-  { label: "11 Dec", x: 63,  rsr: 392,    vl: 44,    srsr: 42,    ydtf: 20,    idtf: 37    },
-  { label: "17 Dec", x: 125, rsr: 418,    vl: 44,    srsr: 42,    ydtf: 20,    idtf: 40    },
-  { label: "23 Dec", x: 188, rsr: 458,    vl: 44,    srsr: 44,    ydtf: 21,    idtf: 43    },
-  { label: "29 Dec", x: 250, rsr: 428,    vl: 44,    srsr: 42,    ydtf: 20,    idtf: 38    },
-  { label: "04 Jan", x: 313, rsr: 492,    vl: 44,    srsr: 44,    ydtf: 21,    idtf: 48    },
-  { label: "10 Jan", x: 375, rsr: 558,    vl: 44,    srsr: 44,    ydtf: 21,    idtf: 52    },
-  { label: "16 Jan", x: 438, rsr: 518,    vl: 44,    srsr: 43,    ydtf: 21,    idtf: 46    },
-  { label: "22 Jan", x: 500, rsr: 578,    vl: 44,    srsr: 44,    ydtf: 22,    idtf: 50    },
-  { label: "28 Jan", x: 563, rsr: 618,    vl: 45,    srsr: 44,    ydtf: 22,    idtf: 52    },
-  { label: "03 Feb", x: 625, rsr: 658,    vl: 45,    srsr: 45,    ydtf: 22,    idtf: 55    },
-  { label: "09 Feb", x: 688, rsr: 198,    vl: 44,    srsr: 43,    ydtf: 20,    idtf: 22    },
-  { label: "15 Feb", x: 750, rsr: 132,    vl: 44,    srsr: 43,    ydtf: 21,    idtf: 24    },
-  { label: "21 Feb", x: 813, rsr: 118.60, vl: 43.81, srsr: 43.52, ydtf: 21.92, idtf: 37.00 },
-  { label: "27 Feb", x: 875, rsr: 198,    vl: 44,    srsr: 43,    ydtf: 21,    idtf: 34    },
-  { label: "05 Mar", x: 937, rsr: 438,    vl: 44,    srsr: 43,    ydtf: 21,    idtf: 43    },
+type OvPoint = { label: string; x: number; val: number }
+const OV_DATA: OvPoint[] = [
+  { label: "JAN 2025", x: 0,   val: 1100  },
+  { label: "",         x: 78,  val: 1600  },
+  { label: "",         x: 156, val: 2500  },
+  { label: "APR 2025", x: 281, val: 5200  },
+  { label: "",         x: 375, val: 9000  },
+  { label: "",         x: 430, val: 12500 },
+  { label: "AUG 2025", x: 520, val: 16800 },
+  { label: "",         x: 578, val: 22000 },
+  { label: "OCT2025",  x: 625, val: 27500 },
+  { label: "",         x: 688, val: 31000 },
+  { label: "",         x: 750, val: 33500 },
+  { label: "",         x: 800, val: 34800 },
+  { label: "DEC 2025", x: 844, val: 35600 },
+  { label: "",         x: 890, val: 36100 },
+  { label: "",         x: 937, val: 35800 },
 ]
 
-const CHART_LAYERS = [
-  { label: "RSR",         key: "rsr"  as const, color: "#7b8fcc" },
-  { label: "Vote-locked", key: "vl"   as const, color: "#e2c06a" },
-  { label: "Staked RSR",  key: "srsr" as const, color: "#e8907a" },
-  { label: "Yield DTFs",  key: "ydtf" as const, color: "#6abcaa" },
-  { label: "Index DTFs",  key: "idtf" as const, color: "#a8bce0" },
-]
+function toOvY(val: number) { return OV_CH - (val / OV_MAX) * OV_CH }
 
-function getCum(d: ChartPoint): [number, number, number, number, number, number] {
-  const c1 = d.rsr; const c2 = c1 + d.vl; const c3 = c2 + d.srsr
-  const c4 = c3 + d.ydtf; const c5 = c4 + d.idtf
-  return [0, c1, c2, c3, c4, c5]
-}
-
-function areaPath(data: ChartPoint[], idx: 1 | 2 | 3 | 4 | 5): string {
-  const prevIdx = (idx - 1) as 0 | 1 | 2 | 3 | 4
-  const fwd = data.map((d, i) => `${i === 0 ? "M" : "L"}${d.x},${toY(getCum(d)[idx])}`).join(" ")
-  const bwd = [...data].reverse().map(d => `L${d.x},${idx > 1 ? toY(getCum(d)[prevIdx]) : CH}`).join(" ")
-  return `${fwd} ${bwd} Z`
-}
-
-function solidPath(data: ChartPoint[]): string {
-  const fwd = data.map((d, i) => `${i === 0 ? "M" : "L"}${d.x},${toY(getCum(d)[5])}`).join(" ")
-  const bwd = [...data].reverse().map(d => `L${d.x},${CH}`).join(" ")
+function ovAreaPath(data: OvPoint[]): string {
+  const fwd = data.map((d, i) => `${i === 0 ? "M" : "L"}${d.x},${toOvY(d.val)}`).join(" ")
+  const bwd = [...data].reverse().map(d => `L${d.x},${OV_CH}`).join(" ")
   return `${fwd} ${bwd} Z`
 }
 
@@ -111,30 +85,7 @@ const REWARDS_DATA: RewardsPoint[] = [
   { label: "Dec 2025", x: 737,  staking: 6462, votelock: 5562 },
 ]
 
-const RSR_MAX = 45000
-function toRSRY(val: number) { return RCH - (val / RSR_MAX) * RCH }
-
-type RSRPoint = { label: string; x: number; total: number }
-const RSR_DATA: RSRPoint[] = [
-  { label: "Jan 2025", x: 0,    total: 200   },
-  { label: "Feb 2025", x: 67,   total: 600   },
-  { label: "Mar 2025", x: 134,  total: 1400  },
-  { label: "Apr 2025", x: 201,  total: 2800  },
-  { label: "May 2025", x: 268,  total: 5000  },
-  { label: "Jun 2025", x: 335,  total: 8500  },
-  { label: "Jul 2025", x: 402,  total: 14000 },
-  { label: "Aug 2025", x: 469,  total: 20000 },
-  { label: "Sep 2025", x: 536,  total: 28000 },
-  { label: "Oct 2025", x: 603,  total: 34000 },
-  { label: "Nov 2025", x: 670,  total: 39000 },
-  { label: "Dec 2025", x: 737,  total: 42132 },
-]
-
 type Preset = "24hr" | "7d" | "1m" | "3m" | "6m" | "alltime"
-
-const PRESET_SLICES: Record<Preset, number> = {
-  "24hr": 1, "7d": 2, "1m": 2, "3m": 4, "6m": 7, "alltime": 12,
-}
 
 const PRESET_DATES: Record<Preset, { from: string; to: string }> = {
   "24hr":    { from: "2025-12-31", to: "2025-12-31" },
@@ -160,16 +111,7 @@ const USD_PRESET_TOTALS: Record<Preset, PresetTotals> = {
   "1m":      { staking: "$562.98",   votelock: "$484.31",   total: "$1,047.29",  pct: "9.5%",  change: "+$90.62",    positive: true },
   "3m":      { staking: "$1,962.31", votelock: "$1,762.98", total: "$3,725.29",  pct: "15.2%", change: "+$499.41",   positive: true },
   "6m":      { staking: "$4,562.31", votelock: "$3,962.98", total: "$8,525.29",  pct: "24.8%", change: "+$1,692.18", positive: true },
-  "alltime": { staking: "$6,999.24", votelock: "$5,562.98", total: "$12,562.22", pct: "6.8%",  change: "+$362.45",   positive: true },
-}
-
-const RSR_PRESET_TOTALS: Record<Preset, PresetTotals> = {
-  "24hr":    { staking: "",           votelock: "58.42",     total: "58.42",     pct: "2.1%", change: "+1.21",   positive: true },
-  "7d":      { staking: "",           votelock: "312.18",    total: "312.18",    pct: "2.1%", change: "+6.32",   positive: true },
-  "1m":      { staking: "",           votelock: "1,842.31",  total: "1,842.31",  pct: "2.1%", change: "+38.25",  positive: true },
-  "3m":      { staking: "",           votelock: "8,421.92",  total: "8,421.92",  pct: "2.1%", change: "+174.91", positive: true },
-  "6m":      { staking: "",           votelock: "21,432.18", total: "21,432.18", pct: "2.1%", change: "+445.13", positive: true },
-  "alltime": { staking: "",           votelock: "42,131.92", total: "42,131.92", pct: "2.3%", change: "+971.453",positive: true },
+  "alltime": { staking: "$6,462.31", votelock: "$5,562.98", total: "$12,562.22", pct: "6.8%",  change: "+$362.45",   positive: true },
 }
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
@@ -214,7 +156,26 @@ function rewardsSolidPath(data: RewardsPoint[]): string {
   return `${fwd} ${bwd} Z`
 }
 
-function rsrPath(data: RSRPoint[]): string {
+const RSR_MAX = 45000
+function toRSRY(val: number) { return RCH - (val / RSR_MAX) * RCH }
+
+type RSRPoint = { label: string; x: number; total: number }
+const RSR_DATA: RSRPoint[] = [
+  { label: "Jan 2025", x: 0,    total: 200   },
+  { label: "Feb 2025", x: 67,   total: 600   },
+  { label: "Mar 2025", x: 134,  total: 1400  },
+  { label: "Apr 2025", x: 201,  total: 2800  },
+  { label: "May 2025", x: 268,  total: 5000  },
+  { label: "Jun 2025", x: 335,  total: 8500  },
+  { label: "Jul 2025", x: 402,  total: 14000 },
+  { label: "Aug 2025", x: 469,  total: 20000 },
+  { label: "Sep 2025", x: 536,  total: 28000 },
+  { label: "Oct 2025", x: 603,  total: 34000 },
+  { label: "Nov 2025", x: 670,  total: 39000 },
+  { label: "Dec 2025", x: 737,  total: 42132 },
+]
+
+function rsrSolidPath(data: RSRPoint[]): string {
   const pts = data.map((d, i) => ({
     ...d,
     nx: data.length === 1 ? RCW / 2 : (i / (data.length - 1)) * RCW,
@@ -222,6 +183,15 @@ function rsrPath(data: RSRPoint[]): string {
   const fwd = pts.map((d, i) => `${i === 0 ? "M" : "L"}${d.nx},${toRSRY(d.total)}`).join(" ")
   const bwd = [...pts].reverse().map(d => `L${d.nx},${RCH}`).join(" ")
   return `${fwd} ${bwd} Z`
+}
+
+const RSR_PRESET_TOTALS: Record<Preset, PresetTotals> = {
+  "24hr":    { staking: "",  votelock: "58.42 RSR",     total: "58.42 RSR",     pct: "2.1%", change: "+1.21",    positive: true },
+  "7d":      { staking: "",  votelock: "312.18 RSR",    total: "312.18 RSR",    pct: "2.1%", change: "+6.32",    positive: true },
+  "1m":      { staking: "",  votelock: "1,842.31 RSR",  total: "1,842.31 RSR",  pct: "2.1%", change: "+38.25",   positive: true },
+  "3m":      { staking: "",  votelock: "8,421.92 RSR",  total: "8,421.92 RSR",  pct: "2.1%", change: "+174.91",  positive: true },
+  "6m":      { staking: "",  votelock: "21,432.18 RSR", total: "21,432.18 RSR", pct: "2.1%", change: "+445.13",  positive: true },
+  "alltime": { staking: "",  votelock: "42,131.92 RSR", total: "42,131.92 RSR", pct: "2.3%", change: "+971.45",  positive: true },
 }
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
@@ -345,6 +315,60 @@ function StatusPill({ label, color }: { label: string; color: string }) {
   )
 }
 
+// ── DateRangePill ─────────────────────────────────────────────────────────────
+
+function DateRangePill({ label }: { label: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, border: "1px solid #e0d5c7", borderRadius: 8, padding: "6px 12px", background: "white", cursor: "pointer", userSelect: "none" }}>
+      <Calendar size={14} color="#666" />
+      <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 400, color: "#0a0d10" }}>{label}</span>
+    </div>
+  )
+}
+
+// ── PieDonut ──────────────────────────────────────────────────────────────────
+
+function PieDonut() {
+  const segs = [
+    { val: 28217.98, color: "#0b1d66" },
+    { val: 1217.98,  color: "#1040b8" },
+    { val: 989.30,   color: "#2c6cd4" },
+    { val: 763.21,   color: "#6aa4e4" },
+    { val: 1004.32,  color: "#b0d0f4" },
+  ]
+  const total = segs.reduce((s, r) => s + r.val, 0)
+  const cx = 72, cy = 72, R = 64, ri = 40
+  let angle = -Math.PI / 2
+
+  const paths = segs.map((seg) => {
+    const sweep = (seg.val / total) * 2 * Math.PI
+    const sa = angle; angle += sweep; const ea = angle
+    const cos = (a: number, r: number) => cx + r * Math.cos(a)
+    const sin = (a: number, r: number) => cy + r * Math.sin(a)
+    const large = sweep > Math.PI ? 1 : 0
+    return {
+      d: `M${cos(sa,R)},${sin(sa,R)} A${R},${R} 0 ${large} 1 ${cos(ea,R)},${sin(ea,R)} L${cos(ea,ri)},${sin(ea,ri)} A${ri},${ri} 0 ${large} 0 ${cos(sa,ri)},${sin(sa,ri)} Z`,
+      color: seg.color,
+    }
+  })
+
+  return (
+    <svg width={144} height={144} viewBox="0 0 144 144" style={{ flexShrink: 0 }}>
+      {paths.map((p, i) => <path key={i} d={p.d} fill={p.color} />)}
+    </svg>
+  )
+}
+
+// ── Sparkline ─────────────────────────────────────────────────────────────────
+
+function Sparkline() {
+  return (
+    <svg width={48} height={28} style={{ flexShrink: 0, display: "block" }}>
+      <path d="M0,20 L8,17 L16,21 L22,18 L28,15 L34,17 L40,11 L46,9" stroke="#666" strokeWidth={1.5} fill="none" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // ── Portfolio sidebar nav ─────────────────────────────────────────────────────
 
 type Section = "overview" | "rewards" | "transactions"
@@ -387,105 +411,75 @@ function PortfolioSidebar({ section, onSection }: { section: Section; onSection:
 // ── Overview chart ────────────────────────────────────────────────────────────
 
 function PortfolioChart() {
-  const [activeTab, setActiveTab] = useState<string>("7d")
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const tabs = ["24hr", "7d", "1m", "3m", "6m", "All time"]
-  const yLabels = ["$1K", "$700", "$350", "0.0"]
-  const xLabels = CHART_DATA.filter((_, i) => i % 2 === 0).map(d => d.label)
+  const yLabels = ["$36K", "$32K", "$28K", "$24K", "$20K", "$16K", "$12K", "$8K", "$4K", "0.0"]
+  const xLabelPts = OV_DATA.filter(d => d.label)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
-    const svgX = ((e.clientX - rect.left) / rect.width) * CW
+    const svgX = ((e.clientX - rect.left) / rect.width) * OV_CW
     let nearest = 0; let minDist = Infinity
-    CHART_DATA.forEach((d, i) => {
+    OV_DATA.forEach((d, i) => {
       const dist = Math.abs(d.x - svgX)
       if (dist < minDist) { minDist = dist; nearest = i }
     })
     setHoverIdx(nearest)
   }
 
-  const hp = hoverIdx !== null ? CHART_DATA[hoverIdx] : null
-  const hpCum = hp ? getCum(hp) : null
-  const hpPct = hp ? (hp.x / CW) * 100 : 0
-  const hpTotal = hp ? hp.rsr + hp.vl + hp.srsr + hp.ydtf + hp.idtf : 0
-  const hpYear = hp ? (hp.label.includes("Dec") ? "2025" : "2026") : ""
+  const hp = hoverIdx !== null ? OV_DATA[hoverIdx] : null
+  const hpPct = hp ? (hp.x / OV_CW) * 100 : 0
 
-  const tooltip = hp && hpCum ? (
-    <div style={{ position: "absolute", top: 16, left: hpPct > 55 ? undefined : `calc(${hpPct}% + 14px)`, right: hpPct > 55 ? `calc(${100 - hpPct}% + 14px)` : undefined, background: "white", borderRadius: 12, padding: "12px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", minWidth: 195, zIndex: 10, pointerEvents: "none" }}>
-      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#666", margin: "0 0 8px" }}>{hp.label}, {hpYear}</p>
-      {CHART_LAYERS.map((layer) => (
-        <div key={layer.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: layer.color, flexShrink: 0 }} />
-            <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{layer.label}</span>
-          </div>
-          <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: "#0a0d10" }}>${(hp[layer.key] as number).toFixed(2)}</span>
-        </div>
-      ))}
-      <div style={{ borderTop: "1px solid #f0ece6", marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between" }}>
-        <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10" }}>Total</span>
-        <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10" }}>${hpTotal.toFixed(2)}</span>
-      </div>
+  const tooltip = hp ? (
+    <div style={{ position: "absolute", top: 16, left: hpPct > 60 ? undefined : `calc(${hpPct}% + 14px)`, right: hpPct > 60 ? `calc(${100 - hpPct}% + 14px)` : undefined, background: "white", borderRadius: 10, padding: "10px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", zIndex: 10, pointerEvents: "none" }}>
+      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#666", margin: "0 0 4px" }}>{hp.label || (OV_DATA.find(d => d.label && d.x <= hp.x)?.label ?? "")}</p>
+      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0151af", margin: 0 }}>${(hp.val / 1000).toFixed(1)}K</p>
     </div>
   ) : null
 
   return (
-    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <div style={{ paddingLeft: 24, display: "flex", flexDirection: "column", gap: 8 }}>
-          <span style={{ fontFamily: FONT, fontSize: 46, fontWeight: 500, color: "#0151af", lineHeight: "50px" }}>$31,373.24</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <TrendingUp size={18} color="#0151af" />
-            <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 300, color: "#0151af" }}>6.8% (+$362.45)</span>
-            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#999" }}>7D</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 500, color: "#666", letterSpacing: 1.2, textTransform: "uppercase" }}>Total Investments</span>
+          <span style={{ fontFamily: FONT, fontSize: 44, fontWeight: 700, color: "#0151af", lineHeight: "48px" }}>$12,562.22</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <ArrowUpRight size={14} color="#0151af" />
+            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: "#0151af" }}>6.8% (+$362.45)</span>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", background: "#f2f2f2", borderRadius: 24, padding: 2 }}>
-          {tabs.map((t) => {
-            const key = t.toLowerCase().replace(" ", "")
-            const isActive = activeTab === key
-            return (
-              <button key={t} onClick={() => setActiveTab(key)} style={{ padding: "6px 10px", borderRadius: isActive ? 14 : 6, border: "none", cursor: "pointer", background: isActive ? "white" : "transparent", boxShadow: isActive ? "0 1px 8px 2px rgba(0,0,0,0.05)" : "none", fontFamily: FONT, fontSize: 14, fontWeight: isActive ? 500 : 300, color: isActive ? "#0151af" : "#0a0d10", whiteSpace: "nowrap" }}>
-                {t}
-              </button>
-            )
-          })}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 400, color: "#0a0d10" }}>Date range:</span>
+          <DateRangePill label="Jan 01, 2025" />
+          <span style={{ fontFamily: FONT, fontSize: 14, color: "#666" }}>to</span>
+          <DateRangePill label="Dec 25, 2025" />
         </div>
       </div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, width: "100%" }}>
-        <div ref={containerRef} style={{ flex: 1, minWidth: 0, position: "relative", height: 400, cursor: "crosshair" }} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)}>
-          <svg viewBox={`0 0 ${CW} ${CH}`} width="100%" height="370" preserveAspectRatio="none" style={{ display: "block" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <div ref={containerRef} style={{ flex: 1, minWidth: 0, position: "relative", cursor: "crosshair" }} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)}>
+          <svg viewBox={`0 0 ${OV_CW} ${OV_CH}`} width="100%" height={OV_CH} preserveAspectRatio="none" style={{ display: "block" }}>
             <defs>
-              <linearGradient id="portfolioSolid" x1="0" y1="0" x2="0" y2={CH} gradientUnits="userSpaceOnUse">
-                <stop offset="0" stopColor="#084894" />
-                <stop offset="1" stopColor="#2470CA" />
+              <linearGradient id="ovGradP" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0c47a1" />
+                <stop offset="100%" stopColor="#3878d8" />
               </linearGradient>
             </defs>
-            {hoverIdx !== null ? (
-              ([1, 2, 3, 4, 5] as const).map((idx) => (
-                <path key={idx} d={areaPath(CHART_DATA, idx)} fill={CHART_LAYERS[idx - 1].color} fillOpacity={0.85} />
-              ))
-            ) : (
-              <path d={solidPath(CHART_DATA)} fill="url(#portfolioSolid)" />
-            )}
-            {hp && <line x1={hp.x} y1={0} x2={hp.x} y2={CH} stroke="#bbb" strokeWidth={0.8} />}
-            {hp && hpCum && CHART_LAYERS.map((layer, i) => (
-              <circle key={layer.key} cx={hp.x} cy={toY(hpCum[(i + 1) as 1 | 2 | 3 | 4 | 5])} r={3.5} fill={layer.color} stroke="white" strokeWidth={1.5} />
-            ))}
+            <path d={ovAreaPath(OV_DATA)} fill="url(#ovGradP)" />
+            {hp && <line x1={hp.x} y1={0} x2={hp.x} y2={OV_CH} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />}
+            {hp && <circle cx={hp.x} cy={toOvY(hp.val)} r={4} fill="white" stroke="#0151af" strokeWidth={2} />}
           </svg>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-            {xLabels.map((l) => (
-              <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#999" }}>{l}</span>
+          <div style={{ position: "relative", height: 20, marginTop: 6 }}>
+            {xLabelPts.map((d) => (
+              <span key={d.label} style={{ position: "absolute", fontFamily: FONT, fontSize: 11, color: "#999", left: `${(d.x / OV_CW) * 100}%`, transform: "translateX(-50%)", whiteSpace: "nowrap" }}>{d.label}</span>
             ))}
           </div>
           {tooltip}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: 370, flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: OV_CH, flexShrink: 0, paddingBottom: 2 }}>
           {yLabels.map((l) => (
-            <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#666", textAlign: "right", display: "block" }}>{l}</span>
+            <span key={l} style={{ fontFamily: FONT, fontSize: 11, color: "#666", textAlign: "right", display: "block", whiteSpace: "nowrap" }}>{l}</span>
           ))}
         </div>
       </div>
@@ -496,26 +490,30 @@ function PortfolioChart() {
 // ── Overview sidebar cards ────────────────────────────────────────────────────
 
 function BreakdownCard() {
-  const rows = [
-    { label: "Index DTFs", value: "$892.12" },
-    { label: "RSR", value: "$393.11" },
-    { label: "Staked RSR", value: "$59.31" },
-    { label: "Vote-locked", value: "$442.02" },
-    { label: "Yield", value: "$59.31" },
+  const PIE_ROWS = [
+    { label: "Index DTFs",  value: "$28,217.98", color: "#0b1d66" },
+    { label: "Yield DTFs",  value: "$1,217.98",  color: "#1040b8" },
+    { label: "Vote-locked", value: "$989.30",    color: "#2c6cd4" },
+    { label: "Staked RSR",  value: "$763.21",    color: "#6aa4e4" },
+    { label: "RSR",         value: "$1,004.32",  color: "#b0d0f4" },
   ]
   return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
-        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Value by asset type</p>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {rows.map(({ label, value }) => (
-          <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{label}</span>
-            <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>{value}</span>
-          </div>
-        ))}
+    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px" }}>
+      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Portfolio Breakdown</p>
+      <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: "0 0 16px" }}>Value by asset type</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          {PIE_ROWS.map(({ label, value, color }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>{label}</span>
+                <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10" }}>{value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <PieDonut />
       </div>
     </div>
   )
@@ -523,18 +521,18 @@ function BreakdownCard() {
 
 function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
         <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>Rewards Available</p>
-        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Your total participation awards available across all chains</p>
+        <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: 0 }}>Participation rewards available across all chains</p>
       </div>
-      <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af" }}>$43.23</span>
-      <button onClick={onRewards} style={{ background: "#0151af", color: "white", border: "none", borderRadius: 16, padding: "8px 16px", fontFamily: FONT, fontSize: 12, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start" }}>
-        Collect Rewards
+      <span style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: "#0151af" }}>$43.23</span>
+      <button onClick={onRewards} style={{ background: "#0a0d10", color: "white", border: "none", borderRadius: 42, padding: "10px 20px", fontFamily: FONT, fontSize: 14, fontWeight: 500, cursor: "pointer", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6 }}>
+        Collect Rewards <ArrowRight size={14} />
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Link href="#" style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#0151af", textDecoration: "none" }}>
-          Learn more about how to earn APY
+        <Link href="#" style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0151af", textDecoration: "none" }}>
+          Learn more about earning APY
         </Link>
         <ArrowUpRight size={12} color="#0151af" />
       </div>
@@ -831,21 +829,20 @@ function ActiveProposalsSection({ tablet, mobile }: { tablet: boolean; mobile: b
   )
 }
 
-function VlRSRIcon() {
+function RoleBadge({ role }: { role: "Delegated" | "Delegator" }) {
+  const isDelegated = role === "Delegated"
   return (
-    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0151af", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1 }}>#</span>
-    </div>
+    <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: isDelegated ? "#0151af" : "#666", background: isDelegated ? "rgba(1,81,175,0.08)" : "#f2f2f2", borderRadius: 42, padding: "3px 10px", whiteSpace: "nowrap" }}>
+      {role}
+    </span>
   )
 }
 
 function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
   const rows = [
-    { dtf: "LCAP", govToken: "vlRSR-LCAP", votePwr: "15,000.00", voteWeight: "0.02%", locker: "0x45A9...82FA", delegate: "0x6905...C8dE" },
-    { dtf: "BGCI", govToken: "vlRSR-BGCI", votePwr: "8,400.00", voteWeight: "0.02%", locker: "0xa276...8fb4", delegate: "0x6905...C8dE" },
-    { dtf: "CLX", govToken: "vlRSR-CLX", votePwr: "5,000.00", voteWeight: "0.03%", locker: "0x25De...666B", delegate: "0x6905...C8dE" },
-    { dtf: "BEER", govToken: "vlRSR-BEER", votePwr: "1,005.00", voteWeight: "100.00%", locker: "0x9c10...92F0", delegate: "0x6905...C8dE" },
-    { dtf: "FORALL", govToken: "vlRSR-FORALL", votePwr: "55.00", voteWeight: "100.00%", locker: "0x1bBf...3180", delegate: "0x6905...C8dE" },
+    { dtf: "CMC20", govToken: "vlRSR-CMC20", votePwr: "28,500.00", voteWeight: "0.05%", locker: "0x45A9...82FA", delegate: "0x6905...C8dE", role: "Delegated" as const },
+    { dtf: "CLX",   govToken: "vlRSR-CLX",   votePwr: "15,000.00", voteWeight: "0.03%", locker: "0x25De...666B", delegate: "0x6905...C8dE", role: "Delegated" as const },
+    { dtf: "LCAP",  govToken: "vlRSR-LCAP",  votePwr: "12,400.00", voteWeight: "0.02%", locker: "0xa276...8fb4", delegate: "0x6905...C8dE", role: "Delegator" as const },
   ]
   return (
     <div style={{ padding: mobile ? "0 20px" : "0 40px", marginBottom: 32 }}>
@@ -854,14 +851,14 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
         {mobile ? (
           rows.map((row, i) => (
             <div key={`${row.dtf}-${i}`} style={{ padding: "16px 24px", borderBottom: i < rows.length - 1 ? "1px solid #e5e5e5" : "none" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <VlRSRIcon />
                   <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
+                  <RoleBadge role={row.role} />
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Governance token <span style={{ color: "#0151af" }}>{row.govToken}</span></span>
+                <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.govToken}</span>
                 <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>Weight <span style={{ fontWeight: 500 }}>{row.voteWeight}</span></span>
               </div>
             </div>
@@ -871,26 +868,25 @@ function VotingPowerSection({ tablet, mobile }: { tablet: boolean; mobile: boole
             <THead>
               <THCell flex={1}>DTF Governed</THCell>
               <THCell width={200}>Governance Token</THCell>
-              {!tablet && <THCell width={140}>Vote Power</THCell>}
-              <THCell width={120}>Vote Weight</THCell>
-              {!tablet && <THCell width={200}>Vote-locker Address</THCell>}
-              {!tablet && <THCell width={200}>Delegate Address</THCell>}
+              {!tablet && <THCell width={130}>Vote Power</THCell>}
+              <THCell width={110}>Vote Weight</THCell>
+              {!tablet && <THCell width={155}>Role</THCell>}
+              {!tablet && <THCell width={165}>Locker Address</THCell>}
+              {!tablet && <THCell width={165}>Delegate Address</THCell>}
             </THead>
             {rows.map((row, i) => (
               <TRow key={`${row.dtf}-${i}`} bordered={i < rows.length - 1}>
                 <Cell flex={1}>
-                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0151af" }}>{row.dtf}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>{row.dtf}</span>
                 </Cell>
                 <Cell width={200}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <VlRSRIcon />
-                    <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.govToken}</span>
-                  </div>
+                  <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.govToken}</span>
                 </Cell>
-                {!tablet && <Cell width={140}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span></Cell>}
-                <Cell width={120}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
-                {!tablet && <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.locker}</span><Copy size={14} color="#666" /></div></Cell>}
-                {!tablet && <Cell width={200}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.delegate}</span><Copy size={14} color="#666" /></div></Cell>}
+                {!tablet && <Cell width={130}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.votePwr}</span></Cell>}
+                <Cell width={110}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>{row.voteWeight}</span></Cell>
+                {!tablet && <Cell width={155}><RoleBadge role={row.role} /></Cell>}
+                {!tablet && <Cell width={165}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{row.locker}</span><ArrowUpRight size={13} color="#666" /></div></Cell>}
+                {!tablet && <Cell width={165}><div style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#0a0d10" }}>{row.delegate}</span><ArrowUpRight size={13} color="#666" /></div></Cell>}
               </TRow>
             ))}
             <div style={{ borderTop: "1px solid #e5e5e5", padding: "14px 24px", display: "flex", justifyContent: "center" }}>
@@ -926,17 +922,32 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
           <>
             <THead>
               <THCell flex={1}>Name</THCell>
-              <THCell width={200}>Performance 7D</THCell>
-              {!tablet && <THCell width={200}>24H Change</THCell>}
-              <THCell width={200}>Balance</THCell>
+              <THCell width={220}>Performance (7D)</THCell>
+              {!tablet && <THCell width={180}>24H CHG</THCell>}
+              <THCell width={180}>Balance</THCell>
               <THCell width={150}>Value</THCell>
             </THead>
             <TRow bordered={false}>
               <Cell flex={1}><div style={{ display: "flex", alignItems: "center", gap: 8 }}>{rsrIcon}<span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0a0d10" }}>RSR</span></div></Cell>
-              <Cell width={200}><PerfCell pct="+1.23%" abs="+$2.14" positive /></Cell>
-              {!tablet && <Cell width={200}><span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10" }}>7.19%</span></Cell>}
-              <Cell width={200}><ValuePair main="230,121" sub="RSR" mainWeight={300} /></Cell>
-              <Cell width={150}><ValuePair main="$9,121.76" sub="USDC" /></Cell>
+              <Cell width={220}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Sparkline />
+                  <div>
+                    <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#23c45f", margin: "0 0 2px" }}>+1.23%</p>
+                    <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#999", margin: 0 }}>+$2.14</p>
+                  </div>
+                </div>
+              </Cell>
+              {!tablet && (
+                <Cell width={180}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <TrendingUp size={14} color="#23c45f" />
+                    <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#23c45f" }}>7.19%</span>
+                  </div>
+                </Cell>
+              )}
+              <Cell width={180}><ValuePair main="235,123" sub="RSR" mainWeight={300} /></Cell>
+              <Cell width={150}><ValuePair main="$5,131.78" sub="USD" /></Cell>
             </TRow>
           </>
         )}
@@ -950,12 +961,12 @@ function RSRSection({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
 function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: boolean; onRewards: () => void }) {
   return (
     <>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? 20 : 40, alignItems: "flex-start", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
+      <div style={{ padding: mobile ? "24px 20px 0" : "32px 40px 0" }}>
         <PortfolioChart />
-        <div style={{ width: mobile ? "100%" : 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-          <BreakdownCard />
-          <RewardsCard onRewards={onRewards} />
-        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, padding: mobile ? "16px 20px 32px" : "24px 40px 48px" }}>
+        <div style={{ flex: 1, minWidth: 0 }}><BreakdownCard /></div>
+        <div style={{ flex: 1, minWidth: 0 }}><RewardsCard onRewards={onRewards} /></div>
       </div>
       <DTFPositionsSection tablet={tablet} mobile={mobile} />
       <StakedPositionsSection tablet={tablet} mobile={mobile} />
@@ -967,242 +978,229 @@ function OverviewView({ tablet, mobile, onRewards }: { tablet: boolean; mobile: 
   )
 }
 
+// ── Filter menu (Customize Report dropdown) ───────────────────────────────────
+
+type ValueBasis = "market" | "purchase"
+type Currency = "usd" | "rsr"
+
+function RadioOption({ checked, onSelect, label, blueDot = false }: { checked: boolean; onSelect: () => void; label: string; blueDot?: boolean }) {
+  const dotColor = blueDot ? "#0151af" : "#0a0d10"
+  return (
+    <button onClick={onSelect} style={{ display: "flex", alignItems: "center", gap: 12, padding: "7px 0", border: "none", background: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
+      <div style={{ width: 20, height: 20, borderRadius: "50%", border: `1.5px solid ${checked ? dotColor : "#d0cac2"}`, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {checked && <div style={{ width: 10, height: 10, borderRadius: "50%", background: dotColor }} />}
+      </div>
+      <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: checked ? "#0a0d10" : "#999" }}>{label}</span>
+    </button>
+  )
+}
+
+function FilterMenu({
+  valueBasis, onValueBasis, currency, onCurrency, onClose,
+}: {
+  valueBasis: ValueBasis
+  onValueBasis: (v: ValueBasis) => void
+  currency: Currency
+  onCurrency: (v: Currency) => void
+  onClose: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener("mousedown", handle)
+    return () => document.removeEventListener("mousedown", handle)
+  }, [onClose])
+
+  return (
+    <div ref={ref} style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 284, background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px", zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.10)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>Customize Report</span>
+        <button style={{ background: "none", border: "1px solid #e0d5c7", borderRadius: 8, padding: "5px 7px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+          <FileDown size={16} color="#888" />
+        </button>
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: "#0a0d10", margin: "0 0 2px" }}>Value basis:</p>
+        <RadioOption checked={valueBasis === "market"} onSelect={() => onValueBasis("market")} label="Current market value" blueDot />
+        <RadioOption checked={valueBasis === "purchase"} onSelect={() => onValueBasis("purchase")} label="Time of purchase" blueDot />
+      </div>
+      <div style={{ borderTop: "1px solid #f0ece6", paddingTop: 20 }}>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: "#0a0d10", margin: "0 0 2px" }}>Currency</p>
+        <RadioOption checked={currency === "usd"} onSelect={() => onCurrency("usd")} label="USD" />
+        <RadioOption checked={currency === "rsr"} onSelect={() => onCurrency("rsr")} label="RSR" />
+      </div>
+    </div>
+  )
+}
+
 // ── Rewards chart ─────────────────────────────────────────────────────────────
 
 function RewardsChart({
-  preset, onPreset, filteredData, filteredRsrData, totals, currency,
+  fromDate, toDate, filteredData, filteredRsrData, totals,
+  valueBasis, onValueBasis, currency, onCurrency,
 }: {
-  preset: Preset | null
-  onPreset: (p: Preset) => void
-  filteredData: RewardsPoint[]
-  filteredRsrData: RSRPoint[]
-  totals: PresetTotals
-  currency: "usd" | "rsr"
+  fromDate: string; toDate: string
+  filteredData: RewardsPoint[]; filteredRsrData: RSRPoint[]; totals: PresetTotals
+  valueBasis: ValueBasis; onValueBasis: (v: ValueBasis) => void
+  currency: Currency; onCurrency: (v: Currency) => void
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
   const [chartHovered, setChartHovered] = useState(false)
-  const tabs: { label: string; key: Preset }[] = [
-    { label: "24hr",     key: "24hr"    },
-    { label: "7d",       key: "7d"      },
-    { label: "1m",       key: "1m"      },
-    { label: "3m",       key: "3m"      },
-    { label: "6m",       key: "6m"      },
-    { label: "All time", key: "alltime" },
-  ]
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const isRsr = currency === "rsr"
+
+  const usdYLabels = ["$36K", "$28K", "$20K", "$12K", "$4K", "0.0"]
+  const rsrYLabels = ["45K", "36K", "27K", "18K", "9K", "0.0"]
+  const yLabels = isRsr ? rsrYLabels : usdYLabels
+
   const activeData = isRsr ? filteredRsrData : filteredData
-  const yLabels = isRsr
-    ? ["45K", "36K", "27K", "18K", "9K", "0.0"]
-    : ["$36K", "$28K", "$20K", "$12K", "$4K", "0.0"]
   const xLabels = activeData.length <= 4
     ? activeData.map(d => d.label)
     : [0, Math.floor(activeData.length / 3), Math.floor(activeData.length * 2 / 3), activeData.length - 1]
         .map(i => activeData[i].label)
 
-  return (
-    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: "#666", letterSpacing: 1, textTransform: "uppercase" }}>
-            {isRsr ? "Total RSR Rewards" : "Total USD Rewards"}
-          </span>
-          <span style={{ fontFamily: FONT, fontSize: 46, fontWeight: 500, color: "#0151af", lineHeight: "50px" }}>{totals.total}</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {totals.positive ? <TrendingUp size={18} color="#0151af" /> : <TrendingDown size={18} color="#ef4345" />}
-            <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 300, color: totals.positive ? "#0151af" : "#ef4345" }}>{totals.pct} ({totals.change})</span>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", background: "#f2f2f2", borderRadius: 24, padding: 2 }}>
-          {tabs.map(({ label, key }) => {
-            const isActive = preset === key
-            return (
-              <button key={key} onClick={() => onPreset(key)} style={{ padding: "6px 10px", borderRadius: isActive ? 14 : 6, border: "none", cursor: "pointer", background: isActive ? "white" : "transparent", boxShadow: isActive ? "0 1px 8px 2px rgba(0,0,0,0.05)" : "none", fontFamily: FONT, fontSize: 14, fontWeight: isActive ? 500 : 300, color: isActive ? "#0151af" : "#0a0d10", whiteSpace: "nowrap" }}>
-                {label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, width: "100%" }}>
-        <div style={{ flex: 1, minWidth: 0 }} onMouseEnter={() => setChartHovered(true)} onMouseLeave={() => setChartHovered(false)}>
-          <svg viewBox={`0 0 ${RCW} ${RCH}`} width="100%" height="352" preserveAspectRatio="none" style={{ display: "block" }}>
-            <defs>
-              <linearGradient id="rewardsSolid" x1="0" y1="0" x2="0" y2={RCH} gradientUnits="userSpaceOnUse">
-                <stop offset="0" stopColor="#084894" />
-                <stop offset="1" stopColor="#2470CA" />
-              </linearGradient>
-            </defs>
-            {chartHovered ? (
-              isRsr ? (
-                <path d={rsrPath(filteredRsrData)} fill="#7b8fcc" fillOpacity={0.9} />
-              ) : (
-                <>
-                  <path d={rewardsPath(filteredData, "votelock")} fill="#6abcaa" fillOpacity={0.85} />
-                  <path d={rewardsPath(filteredData, "staking")} fill="#7b8fcc" fillOpacity={0.85} />
-                </>
-              )
-            ) : (
-              <path d={isRsr ? rsrPath(filteredRsrData) : rewardsSolidPath(filteredData)} fill="url(#rewardsSolid)" />
-            )}
-          </svg>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-            {xLabels.map((l) => (
-              <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#999" }}>{l}</span>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: 352, flexShrink: 0 }}>
-          {yLabels.map((l) => (
-            <span key={l} style={{ fontFamily: "'Lato', sans-serif", fontSize: 11, color: "#666", textAlign: "right", display: "block" }}>{l}</span>
-          ))}
-        </div>
-      </div>
-      {!isRsr && (
-        <div style={{ display: "flex", alignItems: "center", gap: 16, paddingLeft: 4 }}>
-          {[{ label: "Staking rewards", color: "#7b8fcc" }, { label: "Vote-lock rewards", color: "#6abcaa" }].map(({ label, color }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
-              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+  const currencyLabel = isRsr ? "Total RSR Rewards" : "Total USD Rewards"
 
-// ── Rewards right panel ───────────────────────────────────────────────────────
-
-function DatePickerField({ value, onChange, tooltip }: {
-  value: string
-  onChange: (v: string) => void
-  tooltip: string
-}) {
-  const [hovered, setHovered] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function openPicker() {
-    const el = inputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null
-    el?.showPicker ? el.showPicker() : el?.click()
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const pct = (e.clientX - rect.left) / rect.width
+    const n = activeData.length
+    let nearest = 0; let minDist = Infinity
+    activeData.forEach((_, i) => {
+      const ix = n === 1 ? 0.5 : i / (n - 1)
+      const dist = Math.abs(ix - pct)
+      if (dist < minDist) { minDist = dist; nearest = i }
+    })
+    setHoverIdx(nearest)
   }
 
-  return (
-    <div
-      style={{ position: "relative", flex: 1, minWidth: 0 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div
-        onClick={openPicker}
-        style={{ border: "1px solid #e5e5e5", borderRadius: 8, padding: "8px 10px", fontFamily: FONT, fontSize: 13, fontWeight: 300, color: value ? "#0a0d10" : "#999", background: "white", userSelect: "none", cursor: "pointer" }}
-      >
-        {value ? formatDateDisplay(value) : "—"}
+  const hp = hoverIdx !== null ? activeData[hoverIdx] : null
+  const hpNx = hp ? (activeData.length === 1 ? RCW / 2 : (hoverIdx! / (activeData.length - 1)) * RCW) : 0
+  const hpPct = hpNx / RCW * 100
+
+  const tooltip = hp ? (() => {
+    const isRight = hpPct > 55
+    return (
+      <div style={{ position: "absolute", top: 12, ...(isRight ? { right: `calc(${100 - hpPct}% + 12px)` } : { left: `calc(${hpPct}% + 12px)` }), background: "white", borderRadius: 10, padding: "10px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", zIndex: 10, pointerEvents: "none", minWidth: 140 }}>
+        <p style={{ fontFamily: FONT, fontSize: 11, fontWeight: 500, color: "#999", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>{hp.label}</p>
+        {isRsr ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: "#0151af", flexShrink: 0 }} />
+            <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>Vote-locked</span>
+            <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10", marginLeft: "auto" }}>{((hp as RSRPoint).total / 1000).toFixed(1)}K</span>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: "#0b3fa0", flexShrink: 0 }} />
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>Vote-locked</span>
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10", marginLeft: "auto" }}>${((hp as RewardsPoint).votelock / 1000).toFixed(1)}K</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: "#4dbfb0", flexShrink: 0 }} />
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666" }}>Staked</span>
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0a0d10", marginLeft: "auto" }}>${((hp as RewardsPoint).staking / 1000).toFixed(1)}K</span>
+            </div>
+            <div style={{ borderTop: "1px solid #f0ece6", paddingTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: "#666" }}>Total</span>
+              <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0151af" }}>${(((hp as RewardsPoint).staking + (hp as RewardsPoint).votelock) / 1000).toFixed(1)}K</span>
+            </div>
+          </>
+        )}
       </div>
-      <input
-        ref={inputRef}
-        type="date"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0, top: 0, left: 0 }}
-      />
-      {hovered && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: "#0a0d10", color: "white", fontFamily: FONT, fontSize: 12, fontWeight: 400, whiteSpace: "nowrap", padding: "5px 10px", borderRadius: 6, pointerEvents: "none", zIndex: 10 }}>
-          {tooltip}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function CustomizeReportPanel({
-  fromDate, toDate, onFromDate, onToDate, currency, onCurrency,
-}: {
-  fromDate: string
-  toDate: string
-  onFromDate: (v: string) => void
-  onToDate: (v: string) => void
-  currency: "usd" | "rsr"
-  onCurrency: (v: "usd" | "rsr") => void
-}) {
-  const [valueBasis, setValueBasis] = useState<"market" | "purchase">("market")
+    )
+  })() : null
 
   return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af" }}>Customize Report</span>
-        <div
-          style={{ position: "relative", display: "inline-flex" }}
-          onMouseEnter={e => { const t = (e.currentTarget as HTMLElement).querySelector<HTMLElement>("[data-tooltip]"); if (t) t.style.opacity = "1" }}
-          onMouseLeave={e => { const t = (e.currentTarget as HTMLElement).querySelector<HTMLElement>("[data-tooltip]"); if (t) t.style.opacity = "0" }}
-        >
-          <FileDown size={20} color="#666" style={{ cursor: "pointer" }} />
-          <div
-            data-tooltip
-            style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#0a0d10", color: "white", fontFamily: FONT, fontSize: 12, fontWeight: 400, whiteSpace: "nowrap", padding: "5px 10px", borderRadius: 6, opacity: 0, pointerEvents: "none", transition: "opacity 0.15s", zIndex: 10 }}
-          >
-            Download CSV
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 500, color: "#666", letterSpacing: 1.2, textTransform: "uppercase" }}>{currencyLabel}</span>
+          <span style={{ fontFamily: FONT, fontSize: 44, fontWeight: 700, color: "#0151af", lineHeight: "48px" }}>{totals.total}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <ArrowUpRight size={14} color="#0151af" />
+            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: "#0151af" }}>{totals.pct} ({totals.change})</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 400, color: "#0a0d10" }}>Date range:</span>
+          <DateRangePill label={formatDateDisplay(fromDate)} />
+          <span style={{ fontFamily: FONT, fontSize: 14, color: "#666" }}>to</span>
+          <DateRangePill label={formatDateDisplay(toDate)} />
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{ background: menuOpen ? "#f5f0eb" : "none", border: "1px solid #e0d5c7", borderRadius: 8, cursor: "pointer", padding: "6px 8px", display: "flex", alignItems: "center" }}
+            >
+              <SlidersHorizontal size={14} color={menuOpen ? "#0151af" : "#666"} />
+            </button>
+            {menuOpen && (
+              <FilterMenu
+                valueBasis={valueBasis} onValueBasis={onValueBasis}
+                currency={currency} onCurrency={onCurrency}
+                onClose={() => setMenuOpen(false)}
+              />
+            )}
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Date range</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <DatePickerField value={fromDate} onChange={onFromDate} tooltip="From Date" />
-          <span style={{ fontFamily: FONT, fontSize: 13, color: "#999", flexShrink: 0 }}>–</span>
-          <DatePickerField value={toDate} onChange={onToDate} tooltip="To Date" />
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <div
+          ref={containerRef}
+          style={{ flex: 1, minWidth: 0, position: "relative", cursor: "crosshair" }}
+          onMouseEnter={() => setChartHovered(true)}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => { setChartHovered(false); setHoverIdx(null) }}
+        >
+          <svg viewBox={`0 0 ${RCW} ${RCH}`} width="100%" height={RCH} preserveAspectRatio="none" style={{ display: "block" }}>
+            <defs>
+              <linearGradient id="rwdGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0c47a1" />
+                <stop offset="100%" stopColor="#3878d8" />
+              </linearGradient>
+            </defs>
+            {isRsr ? (
+              <path d={rsrSolidPath(filteredRsrData)} fill="url(#rwdGrad)" />
+            ) : chartHovered ? (
+              <>
+                <path d={rewardsPath(filteredData, "votelock")} fill="#0b3fa0" />
+                <path d={rewardsPath(filteredData, "staking")} fill="#4dbfb0" fillOpacity={0.9} />
+              </>
+            ) : (
+              <path d={rewardsSolidPath(filteredData)} fill="url(#rwdGrad)" />
+            )}
+            {hp && (
+              <>
+                <line x1={hpNx} y1={0} x2={hpNx} y2={RCH} stroke="rgba(255,255,255,0.5)" strokeWidth={1} />
+                {isRsr ? (
+                  <circle cx={hpNx} cy={toRSRY((hp as RSRPoint).total)} r={4} fill="white" stroke="#0151af" strokeWidth={2} />
+                ) : (
+                  <>
+                    <circle cx={hpNx} cy={toRY((hp as RewardsPoint).votelock)} r={4} fill="white" stroke="#0b3fa0" strokeWidth={2} />
+                    <circle cx={hpNx} cy={toRY((hp as RewardsPoint).staking + (hp as RewardsPoint).votelock)} r={4} fill="white" stroke="#4dbfb0" strokeWidth={2} />
+                  </>
+                )}
+              </>
+            )}
+          </svg>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            {xLabels.map(l => (
+              <span key={l} style={{ fontFamily: FONT, fontSize: 11, color: "#999" }}>{l}</span>
+            ))}
+          </div>
+          {tooltip}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: RCH, flexShrink: 0 }}>
+          {yLabels.map(l => (
+            <span key={l} style={{ fontFamily: FONT, fontSize: 11, color: "#666", textAlign: "right", display: "block", whiteSpace: "nowrap" }}>{l}</span>
+          ))}
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Value basis</span>
-        {[
-          { key: "market" as const, label: "Current market value" },
-          { key: "purchase" as const, label: "Time of purchase" },
-        ].map(({ key, label }) => (
-          <button key={key} onClick={() => setValueBasis(key)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "3px 8px", borderRadius: 10, border: "none", background: "none", cursor: "pointer", textAlign: "left" }}>
-            <div style={{ width: 16, height: 16, borderRadius: "50%", border: `1px solid ${valueBasis === key ? "#0151af" : "#e5e5e5"}`, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              {valueBasis === key && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#0151af" }} />}
-            </div>
-            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: valueBasis === key ? "#0a0d10" : "#666" }}>{label}</span>
-          </button>
-        ))}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>Currency</span>
-        {[
-          { key: "usd" as const, label: "USD" },
-          { key: "rsr" as const, label: "RSR" },
-        ].map(({ key, label }) => (
-          <button key={key} onClick={() => onCurrency(key)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "3px 8px", borderRadius: 10, border: "none", background: "none", cursor: "pointer", textAlign: "left" }}>
-            <div style={{ width: 16, height: 16, borderRadius: "50%", border: `1px solid ${currency === key ? "#0151af" : "#e5e5e5"}`, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              {currency === key && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#0151af" }} />}
-            </div>
-            <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: currency === key ? "#0a0d10" : "#666" }}>{label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function RewardsBreakdownCard({ totals, currency }: { totals: PresetTotals; currency: "usd" | "rsr" }) {
-  const isRsr = currency === "rsr"
-  const rows = isRsr
-    ? [{ label: "Total Vote Locked", value: totals.votelock }]
-    : [{ label: "Total Staked", value: totals.staking }, { label: "Total Vote Locked", value: totals.votelock }]
-  return (
-    <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 2px" }}>
-          {isRsr ? "RSR Rewards" : "USD Rewards"}
-        </p>
-        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0 }}>Based on time range above</p>
-      </div>
-      {rows.map(({ label, value }) => (
-        <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{label}</span>
-          <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0a0d10" }}>{value}</span>
-        </div>
-      ))}
     </div>
   )
 }
@@ -1302,62 +1300,45 @@ function StakingActivitySection({ mobile }: { mobile: boolean }) {
   )
 }
 
+// ── Rewards stat card ─────────────────────────────────────────────────────────
+
+function RewardsStat({ title, value }: { title: string; value: string }) {
+  return (
+    <div style={{ flex: 1, background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px" }}>
+      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>{title}</p>
+      <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: "0 0 16px" }}>Based on time range above</p>
+      <p style={{ fontFamily: FONT, fontSize: 26, fontWeight: 700, color: "#0a0d10", margin: 0 }}>{value}</p>
+    </div>
+  )
+}
+
 // ── Rewards view ──────────────────────────────────────────────────────────────
 
-function RewardsView({ tablet, mobile }: { tablet: boolean; mobile: boolean }) {
-  const [preset, setPreset] = useState<Preset | null>("alltime")
-  const [fromDate, setFromDate] = useState(PRESET_DATES["alltime"].from)
-  const [toDate, setToDate] = useState(PRESET_DATES["alltime"].to)
-  const [currency, setCurrency] = useState<"usd" | "rsr">("usd")
+function RewardsView({ mobile }: { tablet: boolean; mobile: boolean }) {
+  const [valueBasis, setValueBasis] = useState<ValueBasis>("market")
+  const [currency, setCurrency] = useState<Currency>("rsr")
 
-  function handlePreset(p: Preset) {
-    setPreset(p)
-    setFromDate(PRESET_DATES[p].from)
-    setToDate(PRESET_DATES[p].to)
-  }
-
-  function handleFromDate(v: string) {
-    setFromDate(v)
-    setPreset(null)
-  }
-
-  function handleToDate(v: string) {
-    setToDate(v)
-    setPreset(null)
-  }
-
-  const filteredData = preset
-    ? REWARDS_DATA.slice(-PRESET_SLICES[preset])
-    : filterByDateRange(REWARDS_DATA, fromDate, toDate)
-  const filteredRsrData = preset
-    ? RSR_DATA.slice(-PRESET_SLICES[preset])
-    : filterByDateRange(RSR_DATA, fromDate, toDate)
-  const totals = currency === "rsr"
-    ? (preset ? RSR_PRESET_TOTALS[preset] : RSR_PRESET_TOTALS["alltime"])
-    : (preset ? USD_PRESET_TOTALS[preset] : USD_PRESET_TOTALS["alltime"])
+  const fromDate = PRESET_DATES["alltime"].from
+  const toDate = PRESET_DATES["alltime"].to
+  const filteredData = filterByDateRange(REWARDS_DATA, fromDate, toDate)
+  const filteredRsrData = filterByDateRange(RSR_DATA, fromDate, toDate)
+  const totals = currency === "rsr" ? RSR_PRESET_TOTALS["alltime"] : USD_PRESET_TOTALS["alltime"]
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 40, alignItems: "flex-start", padding: mobile ? "24px 20px 32px" : "32px 40px 48px" }}>
+      <div style={{ padding: mobile ? "24px 20px 0" : "32px 40px 0" }}>
         <RewardsChart
-          preset={preset}
-          onPreset={handlePreset}
+          fromDate={fromDate} toDate={toDate}
           filteredData={filteredData}
           filteredRsrData={filteredRsrData}
           totals={totals}
-          currency={currency}
+          valueBasis={valueBasis} onValueBasis={setValueBasis}
+          currency={currency} onCurrency={setCurrency}
         />
-        <div style={{ width: mobile ? "100%" : 284, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-          <CustomizeReportPanel
-            fromDate={fromDate}
-            toDate={toDate}
-            onFromDate={handleFromDate}
-            onToDate={handleToDate}
-            currency={currency}
-            onCurrency={setCurrency}
-          />
-          <RewardsBreakdownCard totals={totals} currency={currency} />
-        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, padding: mobile ? "16px 20px 32px" : "16px 40px 32px" }}>
+        {currency === "usd" && <RewardsStat title="Total Staked" value={totals.staking} />}
+        <RewardsStat title="Total Vote Locked" value={totals.votelock} />
       </div>
       <AvailableRewardsSection mobile={mobile} />
       <StakingActivitySection mobile={mobile} />
