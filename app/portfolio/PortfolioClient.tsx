@@ -626,12 +626,12 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
           <>
             <THead>
               <THCell flex={1}>Name</THCell>
-              <THCell width={190}>Performance <span style={{ color: "#999", marginLeft: 4 }}>(24H)</span></THCell>
-              {!tablet && <THCell width={155}>Unrealized P/L</THCell>}
-              {!tablet && <THCell width={155}>Average price</THCell>}
-              {!tablet && <THCell width={155}>Market Cap</THCell>}
-              <THCell width={145}>Balance</THCell>
-              <THCell width={145}>Value</THCell>
+              <THCell width={165}>Performance <span style={{ color: "#999", marginLeft: 4 }}>(24H)</span></THCell>
+              {!tablet && <THCell width={130}>Unrealized P/L</THCell>}
+              {!tablet && <THCell width={130}>Average price</THCell>}
+              {!tablet && <THCell width={130}>Market Cap</THCell>}
+              <THCell width={125}>Balance</THCell>
+              <THCell width={125}>Value</THCell>
             </THead>
             {rows.map((row, i) => (
               <TRow key={row.ticker} bordered={i < rows.length - 1}>
@@ -644,12 +644,12 @@ function DTFPositionsSection({ tablet, mobile }: { tablet: boolean; mobile: bool
                     </div>
                   </div>
                 </Cell>
-                <Cell width={190}><PerfCell pct={row.perf} abs={row.perfAbs} positive={row.perfPos} /></Cell>
-                {!tablet && <Cell width={155}><div><p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
-                {!tablet && <Cell width={155}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
-                {!tablet && <Cell width={155}><ValuePair main={row.mktCap} sub={row.mktCapSub} mainWeight={300} /></Cell>}
-                <Cell width={145}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
-                <Cell width={145}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
+                <Cell width={165}><PerfCell pct={row.perf} abs={row.perfAbs} positive={row.perfPos} /></Cell>
+                {!tablet && <Cell width={130}><div><p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: row.unrealizedColor, margin: "0 0 3px" }}>{row.unrealized}</p><p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 300, color: "#999", margin: 0 }}>{row.unrealizedSub}</p></div></Cell>}
+                {!tablet && <Cell width={130}><span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10" }}>{row.avgPrice}</span></Cell>}
+                {!tablet && <Cell width={130}><ValuePair main={row.mktCap} sub={row.mktCapSub} mainWeight={300} /></Cell>}
+                <Cell width={125}><ValuePair main={row.balance} sub={row.balanceSub} mainWeight={300} /></Cell>
+                <Cell width={125}><ValuePair main={row.value} sub={row.valueSub} /></Cell>
               </TRow>
             ))}
           </>
