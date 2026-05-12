@@ -1366,7 +1366,7 @@ function RewardsStat({ title, value }: { title: string; value: string }) {
 
 function RewardsView({ mobile }: { tablet: boolean; mobile: boolean }) {
   const [valueBasis, setValueBasis] = useState<ValueBasis>("market")
-  const [currency, setCurrency] = useState<Currency>("rsr")
+  const [currency, setCurrency] = useState<Currency>("usd")
 
   const fromDate = PRESET_DATES["alltime"].from
   const toDate = PRESET_DATES["alltime"].to
