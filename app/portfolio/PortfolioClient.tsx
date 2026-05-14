@@ -206,7 +206,7 @@ function SectionHeading({
           {icon}
           <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>{title}</span>
         </div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10", margin: 0 }}>
           {subtitle}
           {subtitleLink && (
             <> <Link href="#" style={{ color: "#0151af", textDecoration: "none" }}>{subtitleLink}</Link>.</>
@@ -569,7 +569,10 @@ function RewardsCard({ onRewards }: { onRewards: () => void }) {
   return (
     <div style={{ background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#0151af", margin: 0 }}>Pending Rewards</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Gift size={20} color="#0151af" />
+          <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>Pending Rewards</span>
+        </div>
         <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#666", margin: 0, lineHeight: "18px" }}>
           You have $43.23 of rewards that can be claimed. These rewards are earned by governing Index DTFs. Rewards earned from staking RSR on Yield DTFs does not require any action.
         </p>
@@ -1352,11 +1355,19 @@ function StakingActivitySection({ mobile }: { mobile: boolean }) {
 
 // ── Rewards stat card ─────────────────────────────────────────────────────────
 
-function RewardsStat({ title, value }: { title: string; value: string }) {
+function RewardsStat({ title, value, subtitle, learnMoreHref, icon }: { title: string; value: string; subtitle: string; learnMoreHref: string; icon: React.ReactNode }) {
   return (
     <div style={{ flex: 1, background: "white", border: "1px solid #e0d5c7", borderRadius: 20, padding: "20px 24px" }}>
-      <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: "#0151af", margin: "0 0 4px" }}>{title}</p>
-      <p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 300, color: "#666", margin: "0 0 16px" }}>Based on time range above</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        {icon}
+        <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>{title}</span>
+      </div>
+      <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 400, color: "#666", margin: "0 0 16px", lineHeight: 1.4 }}>
+        {subtitle}{" "}
+        <a href={learnMoreHref} target="_blank" rel="noopener noreferrer" style={{ color: "#0151af", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 2, fontWeight: 500 }}>
+          Learn more <ArrowUpRight size={12} />
+        </a>
+      </p>
       <p style={{ fontFamily: FONT, fontSize: 26, fontWeight: 700, color: "#0a0d10", margin: 0 }}>{value}</p>
     </div>
   )
@@ -1387,8 +1398,8 @@ function RewardsView({ mobile }: { tablet: boolean; mobile: boolean }) {
         />
       </div>
       <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: 16, padding: mobile ? "16px 20px 32px" : "16px 40px 32px" }}>
-        {currency === "usd" && <RewardsStat title="Total Staked" value={totals.staking} />}
-        <RewardsStat title="Total Vote Locked" value={totals.votelock} />
+        {currency === "usd" && <RewardsStat title="Staking Rewards" value={totals.staking} subtitle="What you've earned from staking RSR during the selected time period." learnMoreHref="https://reserve.org/protocol/staking/" icon={<Scale size={20} color="#0151af" />} />}
+        <RewardsStat title="Vote Lock Rewards" value={totals.votelock} subtitle="What you've earned from vote-locking during the selected time period." learnMoreHref="https://reserve.org/protocol/vote-locking/" icon={<Landmark size={20} color="#0151af" />} />
       </div>
       <AvailableRewardsSection mobile={mobile} />
       <StakingActivitySection mobile={mobile} />
@@ -1442,7 +1453,7 @@ function TransactionsView({ mobile }: { mobile: boolean }) {
           <ArrowDownUp size={20} color="#0151af" />
           <span style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: "#0151af" }}>Transactions</span>
         </div>
-        <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Your history of recent on-chain activity</p>
+        <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 300, color: "#0a0d10", margin: 0 }}>Your history of recent on-chain activity</p>
       </div>
 
       {/* Search + filters */}
